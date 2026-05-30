@@ -7,10 +7,12 @@ export type FoodPanelStatus = "cooking" | "ready";
 interface FoodResultPanelProps {
   status: FoodPanelStatus;
   imageUrl?: string | null;
+  // 新增：预留给 AI 生成的菜名参数
+  foodName?: string | null; 
 }
 
-/** 右侧：出锅料理展示 + 上菜按钮 */
-export function FoodResultPanel({ status, imageUrl }: FoodResultPanelProps) {
+/** 右侧：出锅料理展示 + 菜名预留 + 上菜按钮 */
+export function FoodResultPanel({ status, imageUrl, foodName }: FoodResultPanelProps) {
   const { resultStage, font, colors } = COOKING_CONFIG;
   const isCooking = status === "cooking";
 
@@ -37,8 +39,9 @@ export function FoodResultPanel({ status, imageUrl }: FoodResultPanelProps) {
         className="cooking-result-panel__body relative flex flex-1 flex-col"
         style={{ padding: resultStage.bodyPadding }}
       >
+        {/* 上半部分：专门用来展示图片的框，腾出了底部空间 */}
         <div
-          className="cooking-food-stage order-pixel-panel relative flex flex-1 items-center justify-center overflow-hidden"
+          className="cooking-food-stage order-pixel-panel relative flex flex-1 items-center justify-center overflow-hidden mb-4"
           style={{
             minHeight: resultStage.foodImageHeight,
             borderWidth: 2,
@@ -58,7 +61,7 @@ export function FoodResultPanel({ status, imageUrl }: FoodResultPanelProps) {
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={imageUrl}
-              alt="生成的料理"
+              alt={foodName || "生成的料理"}
               className="cooking-food-image max-h-full max-w-full object-contain"
               style={{ imageRendering: "pixelated" }}
             />
@@ -72,20 +75,30 @@ export function FoodResultPanel({ status, imageUrl }: FoodResultPanelProps) {
           )}
         </div>
 
-        <button
-          type="button"
-          className="cooking-serve-btn order-pixel-text absolute"
-          style={{
-            right: resultStage.bodyPadding,
-            bottom: resultStage.bodyPadding,
-            fontSize: font.size,
-            opacity: isCooking ? 0.45 : 1,
-          }}
-          disabled={isCooking}
-          aria-disabled={isCooking}
-        >
-          上菜
-        </button>
+        {/* 下半部分：底部信息与操作栏 */}
+        <div className="flex items-center justify-between shrink-0">
+          
+          {/* 左下角：预留的菜名展示位置 */}
+          <div 
+            className="order-pixel-text font-bold truncate flex-1 mr-4"
+            style={{ fontSize: font.size + 2, color: colors.text }}
+          >
+            {isCooking ? "未知料理..." : `【 ${foodName || "神秘料理"} 】`}
+          </div>
+
+          {/* 右下角：上菜按钮 (移除了原本的 absolute 定位) */}
+          <button
+            type="button"
+            className="cooking-serve-btn order-pixel-text px-6 py-2 shrink-0 border-2 border-black bg-yellow-400 hover:bg-yellow-300 disabled:opacity-50 disabled:bg-gray-300 disabled:cursor-not-allowed shadow-[4px_4px_0_0_rgba(0,0,0,1)] active:translate-x-1 active:translate-y-1 active:shadow-none transition-all"
+            style={{
+              fontSize: font.size,
+            }}
+            disabled={isCooking}
+            aria-disabled={isCooking}
+          >
+            上菜 ➔
+          </button>
+        </div>
       </div>
     </section>
   );
