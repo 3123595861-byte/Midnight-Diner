@@ -1,74 +1,74 @@
 import { NextResponse } from "next/server";
-import type { CookApiRequestBody, CookApiRouteResponse } from "@/lib/types/ai";
-import { generateCookResult } from "@/lib/ai/llm";
-import { generateFoodImage } from "@/lib/ai/image";
+import type { CookApiRouteResponse } from "@/lib/types/ai";
+import { executeCookFlow } from "@/lib/game/cook-service";
+import {
+  parseCookRequestBody,
+  toPlayerRecipe,
+} from "@/lib/game/parse-cook-request";
 
-function isNonEmptyString(value: unknown): value is string {
-  return typeof value === "string" && value.trim().length > 0;
-}
-
-function parseRequestBody(body: unknown): CookApiRequestBody | null {
-  if (!body || typeof body !== "object") {
-    return null;
-  }
-
-  const record = body as Record<string, unknown>;
-  const guest_story = record.guest_story;
-  const player_recipe = record.player_recipe;
-
-  if (!isNonEmptyString(guest_story) || !isNonEmptyString(player_recipe)) {
-    return null;
-  }
-
-  return {
-    guest_story: guest_story.trim(),
-    player_recipe: player_recipe.trim(),
-  };
-}
-
-function errorResponse(message: string, status: number): NextResponse<CookApiRouteResponse> {
-  return NextResponse.json(
-    { success: false, error: message },
-    { status },
-  );
+function errorResponse(
+  message: string,
+  status: number,
+): NextResponse<CookApiRouteResponse> {
+  return NextResponse.json({ success: false, error: message }, { status });
 }
 
 /**
  * POST /api/cook
- * 1. 校验 guest_story、player_recipe
- * 2. Ark 文本模型：判定、评价、image_prompt
- * 3. Ark 图像模型：像素风食物图（失败时 image_url 为空）
+ *
+ * 完整烹饪流程：预检 → AI 判定 → 星级校正 → 生图 → 经济结算
+ *
+ * @example
+ * {
+ *   "guest_story": "想喝一碗豚骨拉面……",
+ *   "guest_id": "guest_01",
+ *   "player_recipe": {
+ *     "ingredient_ids": ["noodles", "pork_bone", "green_onion"],
+ *     "utensil_id": "pot"
+ *   },
+ *   "current_day": 1,
+ *   "current_money": 1000
+ * }
  */
 export async function POST(request: Request) {
   try {
     const body: unknown = await request.json();
-    const payload = parseRequestBody(body);
+    const payload = parseCookRequestBody(body);
 
     if (!payload) {
       return errorResponse(
-        "Missing or invalid fields: guest_story and player_recipe are required",
+        "Invalid body: guest_story and player_recipe { ingredient_ids, utensil_id } are required",
         400,
       );
     }
 
-    const cookResult = await generateCookResult({
+    if (typeof payload.player_recipe === "string") {
+      return errorResponse(
+        "player_recipe must be an object: { ingredient_ids: string[], utensil_id: string }",
+        400,
+      );
+    }
+
+    const recipe = toPlayerRecipe(payload.player_recipe);
+
+    if (recipe.ingredientIds.length === 0 || !recipe.utensilId) {
+      return errorResponse(
+        "player_recipe must include non-empty ingredient_ids and utensil_id",
+        400,
+      );
+    }
+
+    const data = await executeCookFlow({
       guestStory: payload.guest_story,
-      playerRecipe: payload.player_recipe,
+      playerRecipe: recipe,
+      currentDay: payload.current_day ?? 1,
+      guestId: payload.guest_id,
+      coreIngredientIds: payload.core_ingredient_ids,
+      acceptableIngredientIds: payload.acceptable_ingredient_ids,
+      currentMoney: payload.current_money,
     });
 
-    const image_url = await generateFoodImage(cookResult.image_prompt);
-
-    const response: CookApiRouteResponse = {
-      success: true,
-      data: {
-        food_name: cookResult.food_name,
-        star_rating: cookResult.star_rating,
-        evaluation: cookResult.evaluation,
-        image_url,
-      },
-    };
-
-    return NextResponse.json(response);
+    return NextResponse.json({ success: true, data });
   } catch (error) {
     console.error("[POST /api/cook]", error);
     const message =

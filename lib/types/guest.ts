@@ -19,6 +19,10 @@ export interface GuestRequest {
   story: string;
   /** 暗含或明确的目标食物提示（供 LLM / 调试使用，不一定直接展示给玩家） */
   hintedFood?: string;
+  /** 客人最想吃的核心食材 ID */
+  coreIngredientIds?: string[];
+  /** 可接受的替代食材 ID */
+  acceptableIngredientIds?: string[];
   difficulty: GuestStoryDifficulty;
 }
 

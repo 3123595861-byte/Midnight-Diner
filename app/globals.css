@@ -3,34 +3,640 @@
 :root {
   --background: #0f0f12;
   --foreground: #e8e4dc;
-  --card: #1a1a22;
-  --card-foreground: #e8e4dc;
-  --primary: #c9a227;
-  --primary-foreground: #0f0f12;
-  --muted: #2a2a35;
-  --muted-foreground: #9a958a;
-  --border: #3a3a48;
-  --radius: 0.25rem;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-border: var(--border);
-  --radius-sm: calc(var(--radius) - 2px);
-  --radius-md: var(--radius);
-  --radius-lg: calc(var(--radius) + 2px);
+  --pixel-yellow: #e8c97a;
+  --pixel-yellow-soft: #f5ead0;
+  --pixel-yellow-dark: #a8843a;
+  --pixel-btn-bg: #3d2914;
+  --pixel-btn-hover: #5c3d1e;
+  --pixel-btn-text: #f5d76e;
+  --pixel-border: #1a1208;
 }
 
 body {
-  background: var(--background);
+  margin: 0;
+  background: #000;
   color: var(--foreground);
+  overflow: hidden;
 }
 
-/* TODO: Phase 1 添加像素风全局样式、字体、image-rendering 等 */
+/* ── 双界面通用层 ── */
+.screen-layer {
+  position: absolute;
+  inset: 0;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.screen-bg {
+  position: absolute;
+  inset: 0;
+  background-color: #000;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+.screen-content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.screen-content > * {
+  pointer-events: auto;
+}
+
+/* ── 标题：简约大气，静态居中 ── */
+.game-title {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: clamp(3.5rem, 14vh, 9rem);
+  padding: 0 1.5rem;
+  animation: title-fade-in 1.2s ease-out both;
+}
+
+.game-title-text {
+  font-family: var(--font-noto-serif-sc), "Noto Serif SC", "Songti SC", serif;
+  font-size: clamp(2rem, 6vw, 3.75rem);
+  font-weight: 300;
+  line-height: 1.35;
+  color: var(--pixel-yellow-soft);
+  text-align: center;
+  letter-spacing: 0.35em;
+  text-indent: 0.35em;
+  /* 单层柔和阴影，避免多向像素重影 */
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.55);
+}
+
+.game-title-line {
+  display: block;
+  width: clamp(3rem, 18vw, 6rem);
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--pixel-yellow) 20%,
+    var(--pixel-yellow) 80%,
+    transparent
+  );
+  opacity: 0.75;
+}
+
+@keyframes title-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ── 像素按钮 ── */
+.pixel-btn {
+  position: absolute;
+  bottom: clamp(3rem, 18vh, 10rem);
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 0.875rem 2rem;
+  font-family: var(--font-vt323), var(--font-press-start), monospace;
+  font-size: clamp(1.25rem, 3vw, 2rem);
+  font-weight: 400;
+  line-height: 1;
+  color: var(--pixel-btn-text);
+  cursor: pointer;
+  background-color: var(--pixel-btn-bg);
+  border: none;
+  outline: none;
+  box-shadow:
+    inset 0 0 0 2px var(--pixel-yellow-dark),
+    inset 0 0 0 4px var(--pixel-border),
+    0 0 0 2px var(--pixel-yellow-dark),
+    0 0 0 4px #000,
+    0 6px 0 0 #1a1208,
+    0 6px 0 2px #000;
+  transition:
+    transform 0.08s steps(1),
+    background-color 0.15s ease,
+    box-shadow 0.08s steps(1);
+}
+
+.pixel-btn:hover {
+  background-color: var(--pixel-btn-hover);
+  transform: translateX(-50%) scale(1.06);
+  color: #fff3b0;
+}
+
+.pixel-btn:active {
+  transform: translateX(-50%) translateY(4px);
+  box-shadow:
+    inset 0 0 0 2px var(--pixel-yellow-dark),
+    inset 0 0 0 4px var(--pixel-border),
+    0 0 0 2px var(--pixel-yellow-dark),
+    0 0 0 4px #000,
+    0 2px 0 0 #1a1208,
+    0 2px 0 2px #000;
+}
+
+.pixel-btn:focus-visible {
+  outline: 2px solid var(--pixel-yellow);
+  outline-offset: 4px;
+}
+
+/* ══════════════════════════════════════════
+   界面1：顾客点单 — 像素 UI
+   ══════════════════════════════════════════ */
+
+.order-screen-root {
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+.order-pixel-text {
+  font-family: var(--font-press-start), "Courier New", monospace;
+  font-size: 14px;
+  color: #5d4037;
+  -webkit-font-smoothing: none;
+  -moz-osx-font-smoothing: unset;
+  text-rendering: geometricPrecision;
+}
+
+.order-pixel-panel {
+  background-color: #f5f0e1;
+  border: 2px solid #5d4037;
+  box-shadow: 3px 3px 0 0 #3e2723;
+  box-sizing: border-box;
+}
+
+.order-typewriter-cursor {
+  display: inline-block;
+  margin-left: 1px;
+  animation: order-cursor-blink 0.85s step-end infinite;
+}
+
+@keyframes order-cursor-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+/* 翻页箭头（向右） */
+.order-page-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  background-color: #f5f0e1;
+  border: 2px solid #5d4037;
+  cursor: pointer;
+  box-sizing: border-box;
+  transition: background-color 0.12s steps(1);
+}
+
+.order-page-arrow:not(:disabled):hover {
+  background-color: #e8dcc8;
+}
+
+.order-page-arrow:not(:disabled):active {
+  transform: translate(1px, 1px);
+  box-shadow: none;
+}
+
+.order-page-arrow:disabled {
+  cursor: not-allowed;
+  background-color: #ece6d6;
+  box-shadow: none;
+}
+
+/* 翻页箭头（下一页：向右） */
+.order-page-arrow--next::after {
+  content: "";
+  display: block;
+  width: 0;
+  height: 0;
+  border-top: 5px solid transparent;
+  border-bottom: 5px solid transparent;
+  border-left: 7px solid currentColor;
+}
+
+/* 翻页箭头（上一页：向左） */
+.order-page-arrow--prev::after {
+  content: "";
+  display: block;
+  width: 0;
+  height: 0;
+  border-top: 5px solid transparent;
+  border-bottom: 5px solid transparent;
+  border-right: 7px solid currentColor;
+}
+
+/* 开始烹饪 — 向右箭头造型按钮 */
+.order-cook-btn {
+  font-family: var(--font-press-start), "Courier New", monospace;
+  color: #5d4037;
+  background-color: #f5f0e1;
+  border: 2px solid #5d4037;
+  cursor: pointer;
+  box-shadow: 3px 3px 0 0 #3e2723;
+  clip-path: polygon(
+    0 0,
+    calc(100% - var(--arrow-tip, 14px)) 0,
+    100% 50%,
+    calc(100% - var(--arrow-tip, 14px)) 100%,
+    0 100%
+  );
+  -webkit-font-smoothing: none;
+  transition:
+    background-color 0.12s steps(1),
+    color 0.12s steps(1),
+    border-color 0.12s steps(1);
+}
+
+.order-cook-btn--enabled:hover {
+  background-color: #e8dcc8;
+}
+
+.order-cook-btn--enabled:active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 0 #3e2723;
+}
+
+.order-cook-btn--disabled {
+  color: #888888;
+  border-color: #888888;
+  cursor: not-allowed;
+  box-shadow: 2px 2px 0 0 #aaaaaa;
+}
+
+.order-cook-btn--pulse {
+  animation: order-cook-pulse 1.2s steps(2, end) infinite;
+}
+
+@keyframes order-cook-pulse {
+  0%,
+  100% {
+    box-shadow: 3px 3px 0 0 #3e2723;
+  }
+  50% {
+    box-shadow: 3px 3px 0 0 #3e2723, 0 0 0 2px #e8c97a;
+  }
+}
+
+/* 金额变化动画 */
+@keyframes order-money-bump {
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.12);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.order-money-bump {
+  animation: order-money-bump 0.35s ease-out;
+}
+
+/* 页面淡入淡出 */
+.order-fade-in {
+  animation: order-fade-in 0.4s ease-out both;
+}
+
+.order-fade-out {
+  animation: order-fade-out 0.4s ease-in both;
+}
+
+@keyframes order-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes order-fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+/* ══════════════════════════════════════════
+   界面2：烹饪选料
+   ══════════════════════════════════════════ */
+
+.cooking-screen-root {
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+.cooking-panel {
+  box-shadow: -4px 0 0 0 #3e2723;
+  background-color: rgba(245, 240, 225, 0.96);
+}
+
+.cooking-tab-btn {
+  cursor: pointer;
+  box-shadow: 2px 2px 0 0 #3e2723;
+  -webkit-font-smoothing: none;
+}
+
+.cooking-tab-btn:not(.cooking-tab-btn--active):hover {
+  background-color: #e8dcc8 !important;
+}
+
+/* 椭圆食材卡片 */
+.cooking-item-chip {
+  border: 2px solid #5d4037;
+  border-radius: 50% / 42%;
+  background-color: #f5f0e1;
+  box-shadow: 2px 2px 0 0 #3e2723;
+  cursor: pointer;
+  -webkit-font-smoothing: none;
+  transition: background-color 0.1s steps(1);
+}
+
+.cooking-item-chip:hover {
+  background-color: #e8dcc8;
+}
+
+.cooking-item-chip--selected {
+  background-color: #e0d4b8;
+  box-shadow:
+    2px 2px 0 0 #3e2723,
+    inset 0 0 0 2px #5d4037;
+}
+
+/* 已选条目标签 */
+.cooking-selected-chip {
+  border: 2px solid #5d4037;
+  border-radius: 999px;
+  background-color: #f5f0e1;
+  box-shadow: 2px 2px 0 0 #3e2723;
+}
+
+.cooking-remove-btn {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  display: none;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  font-family: var(--font-press-start), "Courier New", monospace;
+  font-size: 12px;
+  line-height: 1;
+  color: #f5f0e1;
+  cursor: pointer;
+  background-color: #5d4037;
+  border: 2px solid #3e2723;
+  border-radius: 2px;
+}
+
+.cooking-selected-chip:hover .cooking-remove-btn,
+.cooking-selected-chip:focus-within .cooking-remove-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cooking-remove-btn:hover {
+  background-color: #3e2723;
+}
+
+.cooking-item-grid {
+  scrollbar-width: thin;
+  scrollbar-color: #5d4037 #f5f0e1;
+}
+
+.cooking-item-grid::-webkit-scrollbar {
+  width: 8px;
+}
+
+.cooking-item-grid::-webkit-scrollbar-thumb {
+  background: #5d4037;
+}
+
+/* 开始烹饪（选料面板底部） */
+.cooking-start-btn {
+  background-color: #f5f0e1;
+  border: 2px solid #5d4037;
+  box-shadow: 2px 2px 0 0 #3e2723;
+  cursor: pointer;
+  -webkit-font-smoothing: none;
+  transition:
+    background-color 0.12s steps(1),
+    transform 0.12s steps(1),
+    box-shadow 0.12s steps(1);
+}
+
+.cooking-start-btn--enabled:hover {
+  background-color: #e8dcc8;
+}
+
+.cooking-start-btn--enabled:active {
+  transform: translate(2px, 2px);
+  box-shadow: none;
+}
+
+.cooking-start-btn--disabled {
+  cursor: not-allowed;
+  background-color: #ece6d6;
+  box-shadow: 2px 2px 0 0 #aaaaaa;
+}
+
+/* 烹饪结果：左右双框舞台 */
+.cooking-result-stage {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  padding: 24px 32px;
+  box-sizing: border-box;
+  pointer-events: none;
+}
+
+.cooking-result-stage > * {
+  pointer-events: auto;
+}
+
+.cooking-result-panel {
+  overflow: hidden;
+  background-color: rgba(245, 240, 225, 0.97);
+  box-shadow:
+    3px 3px 0 0 #3e2723,
+    inset 0 0 0 1px rgba(255, 255, 255, 0.35);
+}
+
+.cooking-result-panel__header {
+  flex-shrink: 0;
+  padding: 0 14px;
+  color: #f5f0e1;
+  background-color: #5d4037;
+  border-bottom: 2px solid #3e2723;
+  box-shadow: inset 0 -2px 0 0 rgba(0, 0, 0, 0.12);
+}
+
+.cooking-result-panel__badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  font-size: 11px;
+  line-height: 1;
+  color: #5d4037;
+  background-color: #f5f0e1;
+  border: 2px solid #3e2723;
+  box-shadow: 1px 1px 0 0 #3e2723;
+}
+
+.cooking-result-panel__body {
+  min-height: 0;
+  background-color: #f5f0e1;
+}
+
+/* 左侧思考框：对话尾指向左侧厨师 */
+.cooking-thought-panel {
+  position: relative;
+}
+
+.cooking-thought-panel::after {
+  content: "";
+  position: absolute;
+  left: -14px;
+  bottom: 48px;
+  width: 0;
+  height: 0;
+  border-top: 10px solid transparent;
+  border-bottom: 10px solid transparent;
+  border-right: 14px solid #5d4037;
+  filter: drop-shadow(-2px 2px 0 #3e2723);
+}
+
+.cooking-thought-prompt {
+  padding: 10px 12px;
+  background-color: #ebe4d4;
+  border: 2px dashed #a1887f;
+  box-shadow: inset 1px 1px 0 0 rgba(255, 255, 255, 0.45);
+}
+
+.cooking-thought-input {
+  width: 100%;
+  min-height: 0;
+  padding: 12px;
+  line-height: 1.65;
+  background-color: #faf6ec;
+  border: 2px solid #5d4037;
+  box-shadow: inset 2px 2px 0 0 rgba(62, 39, 35, 0.08);
+  outline: none;
+  -webkit-font-smoothing: none;
+}
+
+.cooking-thought-input::placeholder {
+  color: #a1887f;
+  opacity: 0.85;
+}
+
+.cooking-thought-input:focus {
+  background-color: #fffdf8;
+  box-shadow:
+    inset 2px 2px 0 0 rgba(62, 39, 35, 0.08),
+    0 0 0 2px #e8c97a;
+}
+
+/* 右侧出锅框 */
+.cooking-food-stage {
+  background-color: #2a2218;
+  background-image: repeating-linear-gradient(
+    0deg,
+    rgba(255, 255, 255, 0.03) 0,
+    rgba(255, 255, 255, 0.03) 2px,
+    transparent 2px,
+    transparent 4px
+  );
+}
+
+.cooking-food-status--active {
+  animation: cooking-status-pulse 1.4s steps(2, end) infinite;
+}
+
+.cooking-food-status__dots {
+  display: inline-block;
+  animation: cooking-dots 1.2s steps(4, end) infinite;
+}
+
+@keyframes cooking-status-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.72;
+  }
+}
+
+@keyframes cooking-dots {
+  0% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.35;
+  }
+}
+
+.cooking-food-image {
+  padding: 8px;
+}
+
+.cooking-serve-btn {
+  padding: 8px 18px;
+  color: #5d4037;
+  cursor: pointer;
+  background-color: #f5f0e1;
+  border: 2px solid #5d4037;
+  box-shadow: 2px 2px 0 0 #3e2723;
+  -webkit-font-smoothing: none;
+  transition:
+    background-color 0.12s steps(1),
+    transform 0.12s steps(1),
+    box-shadow 0.12s steps(1);
+}
+
+.cooking-serve-btn:not(:disabled):hover {
+  background-color: #e8dcc8;
+}
+
+.cooking-serve-btn:not(:disabled):active {
+  transform: translate(2px, 2px);
+  box-shadow: none;
+}
+
+.cooking-serve-btn:disabled {
+  cursor: not-allowed;
+}
