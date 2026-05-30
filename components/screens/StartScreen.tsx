@@ -35,7 +35,12 @@ export function StartScreen({ visible, onStart }: StartScreenProps) {
           <span className="game-title-text">深夜食堂</span>
           <span className="game-title-line" aria-hidden="true" />
         </h1>
-        <PixelButton onClick={onStart}>开始游戏</PixelButton>
+        <PixelButton
+          onPointerEnter={() => prefetchGuestOrder()}
+          onClick={onStart}
+        >
+          开始游戏
+        </PixelButton>
       </div>
     </div>
   );

@@ -10,23 +10,33 @@ import {
 import { CategoryTabs } from "@/components/cooking/CategoryTabs";
 import { ItemGrid } from "@/components/cooking/ItemGrid";
 import { SelectedBar } from "@/components/cooking/SelectedBar";
+import { StartCookingButton } from "@/components/cooking/StartCookingButton";
+import { ChefThoughtPanel } from "@/components/cooking/ChefThoughtPanel";
+import {
+  FoodResultPanel,
+  type FoodPanelStatus,
+} from "@/components/cooking/FoodResultPanel";
 import { useUIScale } from "@/components/order/useUIScale";
 
 interface CookingScreenViewProps {
   visible: boolean;
 }
 
+type CookingPhase = "selecting" | "cooking";
+
 /**
- * 界面2：烹饪选料
- * 背景 cookinginterface.png，右侧选菜面板
+ * 界面2：烹饪选料 → 开始烹饪 → 左右双框（心里话 / 出锅）
  */
 export function CookingScreenView({ visible }: CookingScreenViewProps) {
   const scale = useUIScale();
+  const [phase, setPhase] = useState<CookingPhase>("selecting");
   const [activeTab, setActiveTab] = useState<CookingTab>("vegetable");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [selectedUtensilId, setSelectedUtensilId] = useState<string | null>(
     null,
   );
+  const [chefThought, setChefThought] = useState("");
+  const [foodStatus, setFoodStatus] = useState<FoodPanelStatus>("cooking");
 
   const tabItems = useMemo(
     () => getItemsByCategory(activeTab),
@@ -45,6 +55,11 @@ export function CookingScreenView({ visible }: CookingScreenViewProps) {
     }
     return list;
   }, [selectedIds, selectedUtensilId]);
+
+  const hasIngredients = useMemo(
+    () => selectedItems.some((item) => item.category !== "utensil"),
+    [selectedItems],
+  );
 
   const handleToggle = useCallback((item: CookCatalogItem) => {
     if (item.category === "utensil") {
@@ -71,6 +86,12 @@ export function CookingScreenView({ visible }: CookingScreenViewProps) {
       });
     }
   }, []);
+
+  const handleStartCooking = useCallback(() => {
+    if (!hasIngredients) return;
+    setFoodStatus("cooking");
+    setPhase("cooking");
+  }, [hasIngredients]);
 
   const uiStyle = useMemo(
     () => ({
@@ -113,26 +134,41 @@ export function CookingScreenView({ visible }: CookingScreenViewProps) {
         style={wrapperStyle}
       >
         <div className="relative h-full w-full" style={uiStyle}>
-          {/* 右侧选料面板 */}
-          <aside
-            className="cooking-panel order-pixel-panel absolute bottom-0 right-0 top-0 flex flex-col"
-            style={{
-              width: `${COOKING_CONFIG.panelWidthPercent}%`,
-              minWidth: COOKING_CONFIG.panelMinWidth,
-              padding: 16,
-              borderWidth: 2,
-            }}
-          >
-            <CategoryTabs active={activeTab} onChange={setActiveTab} />
-            <ItemGrid
-              items={tabItems}
-              selectedIds={selectedIds}
-              selectedUtensilId={selectedUtensilId}
-              activeCategory={activeTab}
-              onToggle={handleToggle}
-            />
-            <SelectedBar items={selectedItems} onRemove={handleRemove} />
-          </aside>
+          {phase === "selecting" && (
+            <aside
+              className="cooking-panel order-pixel-panel absolute bottom-0 right-0 top-0 flex flex-col order-fade-in"
+              style={{
+                width: `${COOKING_CONFIG.panelWidthPercent}%`,
+                minWidth: COOKING_CONFIG.panelMinWidth,
+                padding: 16,
+                borderWidth: 2,
+              }}
+            >
+              <CategoryTabs active={activeTab} onChange={setActiveTab} />
+              <ItemGrid
+                items={tabItems}
+                selectedIds={selectedIds}
+                selectedUtensilId={selectedUtensilId}
+                activeCategory={activeTab}
+                onToggle={handleToggle}
+              />
+              <SelectedBar items={selectedItems} onRemove={handleRemove} />
+              <StartCookingButton
+                enabled={hasIngredients}
+                onClick={handleStartCooking}
+              />
+            </aside>
+          )}
+
+          {phase === "cooking" && (
+            <div className="cooking-result-stage order-fade-in">
+              <ChefThoughtPanel
+                value={chefThought}
+                onChange={setChefThought}
+              />
+              <FoodResultPanel status={foodStatus} />
+            </div>
+          )}
         </div>
       </div>
     </div>

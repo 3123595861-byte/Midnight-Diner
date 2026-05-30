@@ -46,6 +46,10 @@ export const CONFIG = {
     fontSize: 14,
     /** 翻页箭头按钮尺寸 */
     arrowSize: 20,
+    /** 打字机：普通字符间隔 (ms) */
+    typewriterCharDelayMs: 55,
+    /** 打字机：句读停顿 (ms) */
+    typewriterPunctuationDelayMs: 180,
     /** 估算每行最大字符数（Press Start 2P 14px 下中文约 14 字） */
     charsPerLine: 14,
     /** 内容区可见行数：(height - padding*2) / lineHeight */

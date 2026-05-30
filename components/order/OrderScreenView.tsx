@@ -41,9 +41,15 @@ export function OrderScreenView({ visible }: OrderScreenProps) {
   const [fadePhase, setFadePhase] = useState<"in" | "out" | "idle">("in");
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [typingComplete, setTypingComplete] = useState(false);
 
   const isLastPage = pages.length > 0 && currentPage >= pages.length - 1;
-  const cookEnabled = isLastPage && !loading && !loadError;
+  const cookEnabled =
+    isLastPage && !loading && !loadError && typingComplete;
+
+  const handleTypingComplete = useCallback((complete: boolean) => {
+    setTypingComplete(complete);
+  }, []);
 
   /** 顾客进店：从 GET /api/guest 加载故事并分页展示 */
   useEffect(() => {
@@ -54,6 +60,7 @@ export function OrderScreenView({ visible }: OrderScreenProps) {
     setLoadError(null);
     setPages([]);
     setCurrentPage(0);
+    setTypingComplete(false);
     setFadePhase("in");
 
     loadGuestOrder()
@@ -93,10 +100,12 @@ export function OrderScreenView({ visible }: OrderScreenProps) {
   }, [visible, handleMoneyUpdate]);
 
   const handleNextPage = useCallback(() => {
+    setTypingComplete(false);
     setCurrentPage((p) => Math.min(p + 1, pages.length - 1));
   }, [pages.length]);
 
   const handlePrevPage = useCallback(() => {
+    setTypingComplete(true);
     setCurrentPage((p) => Math.max(p - 1, 0));
   }, []);
 
@@ -166,6 +175,7 @@ export function OrderScreenView({ visible }: OrderScreenProps) {
               currentPage={currentPage}
               onPrevPage={handlePrevPage}
               onNextPage={handleNextPage}
+              onTypingComplete={handleTypingComplete}
             />
           )}
 

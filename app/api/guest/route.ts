@@ -5,7 +5,7 @@ import {
   getGuestCountForDay,
   getGuestForDay,
 } from "@/lib/data/guests";
-import { acquireGuest, warmGuestPool } from "@/lib/game/guest-pool";
+import { acquireGuest, ensureGuestPoolReady, warmGuestPool, getGuestPoolSize } from "@/lib/game/guest-pool";
 
 function errorResponse(
   message: string,
@@ -64,8 +64,16 @@ export async function GET(request: Request) {
   }
 
   if (warmOnly) {
-    warmGuestPool(day);
-    return NextResponse.json({ success: true });
+    const wait = searchParams.get("wait") === "1";
+    if (wait) {
+      await ensureGuestPoolReady(day, 1);
+    } else {
+      warmGuestPool(day);
+    }
+    return NextResponse.json({
+      success: true,
+      pool_size: getGuestPoolSize(),
+    });
   }
 
   if (source === "static") {

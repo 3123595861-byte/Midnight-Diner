@@ -11,6 +11,28 @@ export const COOKING_CONFIG = {
   panelWidthPercent: 38,
   panelMinWidth: 380,
 
+  /** 开始烹饪按钮（选料面板底部） */
+  startCookButton: {
+    paddingX: 20,
+    paddingY: 12,
+    fontSize: 13,
+    marginTop: 12,
+  },
+
+  /** 烹饪结果阶段：左右双框 */
+  resultStage: {
+    gap: 20,
+    panelWidth: 400,
+    panelHeight: 380,
+    headerHeight: 36,
+    bodyPadding: 16,
+    /** 出锅图展示区高度 */
+    foodImageHeight: 260,
+  },
+
+  /** 厨师思考默认提示 */
+  chefThoughtPrompt: "想一想，有没有什么话要对顾客说的？",
+
   colors: {
     text: "#5D4037",
     border: "#5D4037",

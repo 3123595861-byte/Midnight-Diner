@@ -23,6 +23,18 @@ function orderCacheKey(options: GenerateAIOrderOptions): string {
   return `${options.day}:${options.index}:${options.excludeGuestIds?.join(",") ?? ""}`;
 }
 
+async function warmServerGuestPool(day: number): Promise<void> {
+  const params = new URLSearchParams({
+    day: String(day),
+    warm: "1",
+    wait: "1",
+  });
+  const response = await fetch(`/api/guest?${params.toString()}`);
+  if (!response.ok) {
+    throw new Error("客人预热失败");
+  }
+}
+
 /** 触发服务端预热 + 客户端预取第一位客人故事 */
 export function prefetchGuestOrder(
   overrides?: Partial<GenerateAIOrderOptions>,
@@ -30,16 +42,14 @@ export function prefetchGuestOrder(
   const options = buildOrderOptions(overrides);
   const key = orderCacheKey(options);
 
-  if (typeof window !== "undefined") {
-    const params = new URLSearchParams({ day: String(options.day), warm: "1" });
-    void fetch(`/api/guest?${params.toString()}`);
-  }
-
   if (prefetchCache?.key === key) return;
 
   prefetchCache = {
     key,
-    promise: generateAIOrder(options),
+    promise: (async () => {
+      await warmServerGuestPool(options.day);
+      return generateAIOrder(options);
+    })(),
   };
 }
 
@@ -56,6 +66,7 @@ export async function loadGuestOrder(
     return promise;
   }
 
+  await warmServerGuestPool(options.day);
   return generateAIOrder(options);
 }
 

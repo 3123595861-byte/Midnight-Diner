@@ -1,24 +1,33 @@
 import type { GeneratedGuestResult, GenerateGuestOptions } from "@/lib/game/guest-generator";
 import { generateGuestForDay } from "@/lib/game/guest-generator";
 
-const POOL_TARGET = 2;
+/** 池中维持的预生成客人数（后台并行补货） */
+const POOL_TARGET = 3;
 
 const pool: GeneratedGuestResult[] = [];
 let refillPromise: Promise<void> | null = null;
 
+async function generateOneGuest(day: number): Promise<GeneratedGuestResult> {
+  return generateGuestForDay({
+    day,
+    index: 0,
+    excludeGuestIds: [],
+  });
+}
+
+/** 并行补满客人池 */
 async function refillGuestPool(day: number): Promise<void> {
-  while (pool.length < POOL_TARGET) {
-    const result = await generateGuestForDay({
-      day,
-      index: 0,
-      excludeGuestIds: [],
-    });
-    pool.push(result);
-  }
+  const needed = POOL_TARGET - pool.length;
+  if (needed <= 0) return;
+
+  const results = await Promise.all(
+    Array.from({ length: needed }, () => generateOneGuest(day)),
+  );
+  pool.push(...results);
 }
 
 function scheduleRefill(day: number): void {
-  if (refillPromise) return;
+  if (refillPromise || pool.length >= POOL_TARGET) return;
 
   refillPromise = refillGuestPool(day)
     .catch(() => {
@@ -32,15 +41,41 @@ function scheduleRefill(day: number): void {
     });
 }
 
-/** 后台预热客人池，供下一次请求秒开 */
+/** 后台预热客人池 */
 export function warmGuestPool(day: number): void {
   scheduleRefill(day);
 }
 
-/** 优先从预热池取客人，池空则同步生成 */
+/**
+ * 确保池中至少有 minSize 位客人；优先复用在途补货，否则同步生成一位
+ */
+export async function ensureGuestPoolReady(
+  day: number,
+  minSize = 1,
+): Promise<void> {
+  if (pool.length >= minSize) return;
+
+  if (refillPromise) {
+    await refillPromise.catch(() => {});
+    if (pool.length >= minSize) return;
+  }
+
+  if (pool.length < minSize) {
+    const result = await generateOneGuest(day);
+    pool.push(result);
+  }
+
+  scheduleRefill(day);
+}
+
+/** 优先从预热池取客人，池空则等待在途补货或同步生成 */
 export async function acquireGuest(
   options: GenerateGuestOptions,
 ): Promise<GeneratedGuestResult> {
+  if (pool.length === 0 && refillPromise) {
+    await refillPromise.catch(() => {});
+  }
+
   const pooled = pool.shift();
   scheduleRefill(options.day);
 
