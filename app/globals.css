@@ -329,3 +329,99 @@ body {
     opacity: 0;
   }
 }
+
+/* ══════════════════════════════════════════
+   界面2：烹饪选料
+   ══════════════════════════════════════════ */
+
+.cooking-screen-root {
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+.cooking-panel {
+  box-shadow: -4px 0 0 0 #3e2723;
+  background-color: rgba(245, 240, 225, 0.96);
+}
+
+.cooking-tab-btn {
+  cursor: pointer;
+  box-shadow: 2px 2px 0 0 #3e2723;
+  -webkit-font-smoothing: none;
+}
+
+.cooking-tab-btn:not(.cooking-tab-btn--active):hover {
+  background-color: #e8dcc8 !important;
+}
+
+/* 椭圆食材卡片 */
+.cooking-item-chip {
+  border: 2px solid #5d4037;
+  border-radius: 50% / 42%;
+  background-color: #f5f0e1;
+  box-shadow: 2px 2px 0 0 #3e2723;
+  cursor: pointer;
+  -webkit-font-smoothing: none;
+  transition: background-color 0.1s steps(1);
+}
+
+.cooking-item-chip:hover {
+  background-color: #e8dcc8;
+}
+
+.cooking-item-chip--selected {
+  background-color: #e0d4b8;
+  box-shadow:
+    2px 2px 0 0 #3e2723,
+    inset 0 0 0 2px #5d4037;
+}
+
+/* 已选条目标签 */
+.cooking-selected-chip {
+  border: 2px solid #5d4037;
+  border-radius: 999px;
+  background-color: #f5f0e1;
+  box-shadow: 2px 2px 0 0 #3e2723;
+}
+
+.cooking-remove-btn {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  display: none;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  font-family: var(--font-press-start), "Courier New", monospace;
+  font-size: 12px;
+  line-height: 1;
+  color: #f5f0e1;
+  cursor: pointer;
+  background-color: #5d4037;
+  border: 2px solid #3e2723;
+  border-radius: 2px;
+}
+
+.cooking-selected-chip:hover .cooking-remove-btn,
+.cooking-selected-chip:focus-within .cooking-remove-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cooking-remove-btn:hover {
+  background-color: #3e2723;
+}
+
+.cooking-item-grid {
+  scrollbar-width: thin;
+  scrollbar-color: #5d4037 #f5f0e1;
+}
+
+.cooking-item-grid::-webkit-scrollbar {
+  width: 8px;
+}
+
+.cooking-item-grid::-webkit-scrollbar-thumb {
+  background: #5d4037;
+}
