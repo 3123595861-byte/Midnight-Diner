@@ -17,12 +17,22 @@ export async function generateFoodImage(imagePrompt: string): Promise<string> {
       model: imageEndpoint,
       prompt: imagePrompt,
       n: 1,
-      // 当前 Ark 图像接入点要求至少 3686400 像素（1920×1920），512×512 会被拒绝
+      // Ark 这个接入点要求至少 3686400 像素，因此这里必须使用 1920x1920
+      // 如果前端只想“显示得小”，应在页面里缩放展示，而不是把生成尺寸改小。
       size: "1920x1920",
     });
 
-    const url = response.data?.[0]?.url;
-    return url ?? "";
+    console.log("[generateFoodImage] raw response:", JSON.stringify(response));
+
+    const first = response.data?.[0];
+    const url = first?.url;
+    const b64 = first?.b64_json;
+
+    if (url) return url;
+    if (b64) return `data:image/png;base64,${b64}`;
+
+    console.error("[generateFoodImage] Empty image response:", response);
+    return "";
   } catch (error) {
     console.error("[generateFoodImage] Image generation failed:", error);
     return "";

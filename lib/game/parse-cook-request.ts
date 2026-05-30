@@ -29,13 +29,17 @@ function parsePlayerRecipe(value: unknown): PlayerRecipe | string | null {
   const ingredient_ids = record.ingredient_ids;
   const utensil_id = record.utensil_id;
 
-  if (!isStringArray(ingredient_ids) || !isNonEmptyString(utensil_id)) {
+  if (!Array.isArray(ingredient_ids) || ingredient_ids.some((item) => !isNonEmptyString(item))) {
+    return null;
+  }
+
+  if (typeof utensil_id !== "string") {
     return null;
   }
 
   return {
-    ingredientIds: ingredient_ids,
-    utensilId: utensil_id.trim(),
+    ingredientIds: ingredient_ids.map((item) => item.trim()),
+    utensilId: utensil_id.trim() || "pot",
   };
 }
 
@@ -98,8 +102,23 @@ export function toPlayerRecipe(
   if (typeof player_recipe === "string") {
     return { ingredientIds: [], utensilId: "" };
   }
+
+  const asRecord = player_recipe as Record<string, unknown>;
+  const ingredientIds =
+    Array.isArray(asRecord.ingredientIds)
+      ? asRecord.ingredientIds
+      : Array.isArray(asRecord.ingredient_ids)
+        ? asRecord.ingredient_ids
+        : [];
+  const utensilId =
+    typeof asRecord.utensilId === "string"
+      ? asRecord.utensilId
+      : typeof asRecord.utensil_id === "string"
+        ? asRecord.utensil_id
+        : "";
+
   return {
-    ingredientIds: player_recipe.ingredient_ids,
-    utensilId: player_recipe.utensil_id,
+    ingredientIds: ingredientIds.filter((item): item is string => typeof item === "string"),
+    utensilId,
   };
 }

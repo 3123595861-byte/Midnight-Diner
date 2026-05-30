@@ -31,6 +31,13 @@ export interface LLMCookResponse {
   image_prompt: string;
 }
 
+export interface LLMCookPlayerRecipe {
+  ingredient_ids: string[];
+  ingredient_names: string[];
+  utensil_id: string;
+  utensil_name: string;
+}
+
 export interface CookSettlementData {
   ingredient_cost: number;
   payment_received: number;

@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
+import type { CSSProperties } from "react";
 import { COOKING_CONFIG, type CookingTab } from "@/components/cooking/config";
 import {
   getCatalogItem,
@@ -17,6 +18,7 @@ import {
   type FoodPanelStatus,
 } from "@/components/cooking/FoodResultPanel";
 import { useUIScale } from "@/components/order/useUIScale";
+import type { CookApiRouteResponse } from "@/lib/types/ai";
 
 interface CookingScreenViewProps {
   visible: boolean;
@@ -37,6 +39,9 @@ export function CookingScreenView({ visible }: CookingScreenViewProps) {
   );
   const [chefThought, setChefThought] = useState("");
   const [foodStatus, setFoodStatus] = useState<FoodPanelStatus>("cooking");
+  const [foodImageUrl, setFoodImageUrl] = useState<string | null>(null);
+  const [foodName, setFoodName] = useState<string | null>(null);
+  const [isCookingNow, setIsCookingNow] = useState(false);
 
   const tabItems = useMemo(
     () => getItemsByCategory(activeTab),
@@ -87,18 +92,65 @@ export function CookingScreenView({ visible }: CookingScreenViewProps) {
     }
   }, []);
 
-  const handleStartCooking = useCallback(() => {
-    if (!hasIngredients) return;
-    setFoodStatus("cooking");
-    setPhase("cooking");
-  }, [hasIngredients]);
+  const handleStartCooking = useCallback(async () => {
+    if (!hasIngredients || isCookingNow) return;
 
-  const uiStyle = useMemo(
+    const ingredientIds = selectedItems
+      .filter((item) => item.category !== "utensil")
+      .map((item) => item.id);
+    const utensilId = selectedUtensilId ?? "pot";
+
+    setPhase("cooking");
+    setFoodStatus("cooking");
+    setIsCookingNow(true);
+    setFoodImageUrl(null);
+    setFoodName(null);
+
+    try {
+      const response = await fetch("/api/cook", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          guest_story: chefThought.trim() || "请给顾客一句温柔的话",
+          player_recipe: {
+            ingredient_ids: ingredientIds,
+            utensil_id: utensilId,
+          },
+          current_day: 1,
+          current_money: 1000,
+        }),
+      });
+
+      const result = (await response.json()) as CookApiRouteResponse;
+      if (!response.ok) {
+        throw new Error(result.error || `HTTP ${response.status}`);
+      }
+
+      if (result.success && result.data) {
+        setFoodImageUrl(result.data.image_url || null);
+        setFoodName(result.data.food_name || null);
+        setFoodStatus("ready");
+      } else {
+        throw new Error(result.error || "Cook API returned empty data");
+      }
+    } catch (error) {
+      console.error("[CookingScreenView] cook api failed", error);
+      setFoodStatus("ready");
+      setFoodName("生图失败，请检查配置");
+      setFoodImageUrl(null);
+    } finally {
+      setIsCookingNow(false);
+    }
+  }, [chefThought, hasIngredients, isCookingNow, selectedItems, selectedUtensilId]);
+
+  const uiStyle = useMemo<CSSProperties>(
     () => ({
       width: COOKING_CONFIG.designWidth,
       height: COOKING_CONFIG.designHeight,
       transform: `scale(${scale})`,
-      transformOrigin: "top left" as const,
+      transformOrigin: "top left",
     }),
     [scale],
   );
@@ -167,7 +219,11 @@ export function CookingScreenView({ visible }: CookingScreenViewProps) {
                 onChange={setChefThought}
               />
               <div className="absolute top-[20%] right-[10%] w-[40%]">
-                <FoodResultPanel status={foodStatus} />
+                <FoodResultPanel
+                  status={foodStatus}
+                  imageUrl={foodImageUrl}
+                  foodName={foodName}
+                />
               </div>
             </div>
           )}

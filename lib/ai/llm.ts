@@ -18,6 +18,36 @@ function parseStarRating(value: unknown): StarRating {
   return num as StarRating;
 }
 
+function normalizeFoodName(value: string): string {
+  const genericTerms = [
+    "什锦",
+    "拼盘",
+    "综合",
+    "混合",
+    "杂烩",
+    "大杂烩",
+    "风味",
+    "特选",
+    "家常",
+    "夜宵组合",
+  ];
+
+  let normalized = value;
+  for (const term of genericTerms) {
+    normalized = normalized.replace(new RegExp(term, "g"), "");
+  }
+
+  normalized = normalized
+    .replace(/U\d+/gi, "")
+    .replace(/\bitem\s*\d+\b/gi, "")
+    .replace(/\s+/g, " ")
+    .replace(/([锅煮烤炖炒煎])\1+/g, "$1")
+    .replace(/^[-_\s]+|[-_\s]+$/g, "")
+    .trim();
+
+  return normalized;
+}
+
 function parseLLMResponse(raw: string): LLMCookResponse {
   const record = parseJsonObject(raw);
   const food_name = record.food_name;
@@ -40,8 +70,13 @@ function parseLLMResponse(raw: string): LLMCookResponse {
     ? image_prompt
     : `${IMAGE_PROMPT_PREFIX} ${image_prompt}`;
 
+  const cleanedFoodName = normalizeFoodName(food_name.trim());
+  if (!cleanedFoodName) {
+    throw new Error("LLM response produced an invalid food_name");
+  }
+
   return {
-    food_name: food_name.trim(),
+    food_name: cleanedFoodName,
     star_rating: parseStarRating(record.star_rating),
     evaluation: evaluation.trim(),
     image_prompt: normalizedPrompt.trim(),
@@ -50,8 +85,13 @@ function parseLLMResponse(raw: string): LLMCookResponse {
 
 export async function generateCookResult(payload: {
   guestStory: string;
-  playerRecipe: string;
   currentDay: number;
+  playerRecipe: {
+    ingredient_ids: string[];
+    ingredient_names: string[];
+    utensil_id: string;
+    utensil_name: string;
+  };
   precheck: CookPrecheckContext;
 }): Promise<LLMCookResponse> {
   const textEndpoint = process.env.ARK_TEXT_ENDPOINT;
@@ -69,7 +109,7 @@ export async function generateCookResult(payload: {
         content: buildCookUserMessage(payload),
       },
     ],
-    temperature: 0.7,
+    temperature: 0.9,
   });
 
   const content = completion.choices[0]?.message?.content;

@@ -51,7 +51,7 @@ export async function POST(request: Request) {
 
     const recipe = toPlayerRecipe(payload.player_recipe);
 
-    if (recipe.ingredientIds.length === 0 || !recipe.utensilId) {
+    if (!Array.isArray(recipe.ingredientIds) || recipe.ingredientIds.length === 0 || !recipe.utensilId) {
       return errorResponse(
         "player_recipe must include non-empty ingredient_ids and utensil_id",
         400,

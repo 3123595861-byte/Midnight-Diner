@@ -1,11 +1,12 @@
 import type { PlayerRecipe } from "@/lib/types/ingredient";
 import type { CookApiSuccessData } from "@/lib/types/ai";
+import { getIngredientById } from "@/lib/data/ingredients";
+import { getUtensilName } from "@/lib/data/utensils";
 import { findGuestById } from "@/lib/data/guests";
 import { findIncompatiblePair, isPoisonousCombo } from "@/lib/data/incompatibilities";
 import { getIngredientsByIds } from "@/lib/data/ingredients";
 import {
   calculateIngredientCost,
-  formatRecipeForAI,
   hasCoreIngredient,
 } from "@/lib/game/recipe";
 import { applyStarRatingRules } from "@/lib/game/scoring";
@@ -52,13 +53,21 @@ export async function executeCookFlow(
     acceptableIngredientIds,
   );
 
+  const allIngredientNames = playerRecipe.ingredientIds
+    .map((id) => getIngredientById(id)?.name)
+    .filter((name): name is string => Boolean(name));
   const coreNames = getIngredientsByIds(coreIngredientIds).map((i) => i.name);
-  const playerRecipeText = formatRecipeForAI(playerRecipe);
+  const utensilName = getUtensilName(playerRecipe.utensilId);
 
   const llmResult = await generateCookResult({
     guestStory,
-    playerRecipe: playerRecipeText,
     currentDay,
+    playerRecipe: {
+      ingredient_ids: playerRecipe.ingredientIds,
+      ingredient_names: allIngredientNames,
+      utensil_id: playerRecipe.utensilId,
+      utensil_name: utensilName,
+    },
     precheck: {
       isPoisonous,
       hasCoreIngredient: hasCore,

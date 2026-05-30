@@ -58,13 +58,19 @@ export function FoodResultPanel({ status, imageUrl, foodName }: FoodResultPanelP
               </span>
             </p>
           ) : imageUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={imageUrl}
-              alt={foodName || "生成的料理"}
-              className="cooking-food-image max-h-full max-w-full object-contain"
-              style={{ imageRendering: "pixelated" }}
-            />
+            <div className="flex h-full w-full items-center justify-center p-3">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={imageUrl}
+                alt={foodName || "生成的料理"}
+                className="cooking-food-image max-h-full max-w-full object-contain"
+                style={{
+                  imageRendering: "pixelated",
+                  width: "100%",
+                  height: "100%",
+                }}
+              />
+            </div>
           ) : (
             <p
               className="cooking-food-status order-pixel-text opacity-70"
