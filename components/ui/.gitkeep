@@ -1,0 +1,10 @@
+/**
+ * shadcn/ui 组件目录
+ *
+ * 按需安装基础组件，例如：
+ *   npx shadcn@latest add button card tabs scroll-area progress toast
+ *
+ * 安装后组件将出现在此目录，供 OperationPanel、SettlementModal 等使用。
+ */
+
+export {};
