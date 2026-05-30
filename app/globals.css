@@ -3,34 +3,329 @@
 :root {
   --background: #0f0f12;
   --foreground: #e8e4dc;
-  --card: #1a1a22;
-  --card-foreground: #e8e4dc;
-  --primary: #c9a227;
-  --primary-foreground: #0f0f12;
-  --muted: #2a2a35;
-  --muted-foreground: #9a958a;
-  --border: #3a3a48;
-  --radius: 0.25rem;
+  --pixel-yellow: #e8c97a;
+  --pixel-yellow-soft: #f5ead0;
+  --pixel-yellow-dark: #a8843a;
+  --pixel-btn-bg: #3d2914;
+  --pixel-btn-hover: #5c3d1e;
+  --pixel-btn-text: #f5d76e;
+  --pixel-border: #1a1208;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-border: var(--border);
-  --radius-sm: calc(var(--radius) - 2px);
-  --radius-md: var(--radius);
-  --radius-lg: calc(var(--radius) + 2px);
 }
 
 body {
-  background: var(--background);
+  margin: 0;
+  background: #000;
   color: var(--foreground);
+  overflow: hidden;
 }
 
-/* TODO: Phase 1 添加像素风全局样式、字体、image-rendering 等 */
+/* ── 双界面通用层 ── */
+.screen-layer {
+  position: absolute;
+  inset: 0;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.screen-bg {
+  position: absolute;
+  inset: 0;
+  background-color: #000;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+.screen-content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.screen-content > * {
+  pointer-events: auto;
+}
+
+/* ── 标题：简约大气，静态居中 ── */
+.game-title {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: clamp(3.5rem, 14vh, 9rem);
+  padding: 0 1.5rem;
+  animation: title-fade-in 1.2s ease-out both;
+}
+
+.game-title-text {
+  font-family: var(--font-noto-serif-sc), "Noto Serif SC", "Songti SC", serif;
+  font-size: clamp(2rem, 6vw, 3.75rem);
+  font-weight: 300;
+  line-height: 1.35;
+  color: var(--pixel-yellow-soft);
+  text-align: center;
+  letter-spacing: 0.35em;
+  text-indent: 0.35em;
+  /* 单层柔和阴影，避免多向像素重影 */
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.55);
+}
+
+.game-title-line {
+  display: block;
+  width: clamp(3rem, 18vw, 6rem);
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--pixel-yellow) 20%,
+    var(--pixel-yellow) 80%,
+    transparent
+  );
+  opacity: 0.75;
+}
+
+@keyframes title-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ── 像素按钮 ── */
+.pixel-btn {
+  position: absolute;
+  bottom: clamp(3rem, 18vh, 10rem);
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 0.875rem 2rem;
+  font-family: var(--font-vt323), var(--font-press-start), monospace;
+  font-size: clamp(1.25rem, 3vw, 2rem);
+  font-weight: 400;
+  line-height: 1;
+  color: var(--pixel-btn-text);
+  cursor: pointer;
+  background-color: var(--pixel-btn-bg);
+  border: none;
+  outline: none;
+  box-shadow:
+    inset 0 0 0 2px var(--pixel-yellow-dark),
+    inset 0 0 0 4px var(--pixel-border),
+    0 0 0 2px var(--pixel-yellow-dark),
+    0 0 0 4px #000,
+    0 6px 0 0 #1a1208,
+    0 6px 0 2px #000;
+  transition:
+    transform 0.08s steps(1),
+    background-color 0.15s ease,
+    box-shadow 0.08s steps(1);
+}
+
+.pixel-btn:hover {
+  background-color: var(--pixel-btn-hover);
+  transform: translateX(-50%) scale(1.06);
+  color: #fff3b0;
+}
+
+.pixel-btn:active {
+  transform: translateX(-50%) translateY(4px);
+  box-shadow:
+    inset 0 0 0 2px var(--pixel-yellow-dark),
+    inset 0 0 0 4px var(--pixel-border),
+    0 0 0 2px var(--pixel-yellow-dark),
+    0 0 0 4px #000,
+    0 2px 0 0 #1a1208,
+    0 2px 0 2px #000;
+}
+
+.pixel-btn:focus-visible {
+  outline: 2px solid var(--pixel-yellow);
+  outline-offset: 4px;
+}
+
+/* ══════════════════════════════════════════
+   界面1：顾客点单 — 像素 UI
+   ══════════════════════════════════════════ */
+
+.order-screen-root {
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+.order-pixel-text {
+  font-family: var(--font-press-start), "Courier New", monospace;
+  font-size: 14px;
+  color: #5d4037;
+  -webkit-font-smoothing: none;
+  -moz-osx-font-smoothing: unset;
+  text-rendering: geometricPrecision;
+}
+
+.order-pixel-panel {
+  background-color: #f5f0e1;
+  border: 2px solid #5d4037;
+  box-shadow: 3px 3px 0 0 #3e2723;
+  box-sizing: border-box;
+}
+
+/* 翻页箭头（向右） */
+.order-page-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  background-color: #f5f0e1;
+  border: 2px solid #5d4037;
+  cursor: pointer;
+  box-sizing: border-box;
+  transition: background-color 0.12s steps(1);
+}
+
+.order-page-arrow:not(:disabled):hover {
+  background-color: #e8dcc8;
+}
+
+.order-page-arrow:not(:disabled):active {
+  transform: translate(1px, 1px);
+  box-shadow: none;
+}
+
+.order-page-arrow:disabled {
+  cursor: not-allowed;
+  background-color: #ece6d6;
+  box-shadow: none;
+}
+
+/* 翻页箭头（下一页：向右） */
+.order-page-arrow--next::after {
+  content: "";
+  display: block;
+  width: 0;
+  height: 0;
+  border-top: 5px solid transparent;
+  border-bottom: 5px solid transparent;
+  border-left: 7px solid currentColor;
+}
+
+/* 翻页箭头（上一页：向左） */
+.order-page-arrow--prev::after {
+  content: "";
+  display: block;
+  width: 0;
+  height: 0;
+  border-top: 5px solid transparent;
+  border-bottom: 5px solid transparent;
+  border-right: 7px solid currentColor;
+}
+
+/* 开始烹饪 — 向右箭头造型按钮 */
+.order-cook-btn {
+  font-family: var(--font-press-start), "Courier New", monospace;
+  color: #5d4037;
+  background-color: #f5f0e1;
+  border: 2px solid #5d4037;
+  cursor: pointer;
+  box-shadow: 3px 3px 0 0 #3e2723;
+  clip-path: polygon(
+    0 0,
+    calc(100% - var(--arrow-tip, 14px)) 0,
+    100% 50%,
+    calc(100% - var(--arrow-tip, 14px)) 100%,
+    0 100%
+  );
+  -webkit-font-smoothing: none;
+  transition:
+    background-color 0.12s steps(1),
+    color 0.12s steps(1),
+    border-color 0.12s steps(1);
+}
+
+.order-cook-btn--enabled:hover {
+  background-color: #e8dcc8;
+}
+
+.order-cook-btn--enabled:active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 0 #3e2723;
+}
+
+.order-cook-btn--disabled {
+  color: #888888;
+  border-color: #888888;
+  cursor: not-allowed;
+  box-shadow: 2px 2px 0 0 #aaaaaa;
+}
+
+.order-cook-btn--pulse {
+  animation: order-cook-pulse 1.2s steps(2, end) infinite;
+}
+
+@keyframes order-cook-pulse {
+  0%,
+  100% {
+    box-shadow: 3px 3px 0 0 #3e2723;
+  }
+  50% {
+    box-shadow: 3px 3px 0 0 #3e2723, 0 0 0 2px #e8c97a;
+  }
+}
+
+/* 金额变化动画 */
+@keyframes order-money-bump {
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.12);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.order-money-bump {
+  animation: order-money-bump 0.35s ease-out;
+}
+
+/* 页面淡入淡出 */
+.order-fade-in {
+  animation: order-fade-in 0.4s ease-out both;
+}
+
+.order-fade-out {
+  animation: order-fade-out 0.4s ease-in both;
+}
+
+@keyframes order-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes order-fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}

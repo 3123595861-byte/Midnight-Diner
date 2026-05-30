@@ -1,5 +1,5 @@
-import { GameShell } from "@/components/game/GameShell";
+import { ScreenManager } from "@/components/screens/ScreenManager";
 
 export default function HomePage() {
-  return <GameShell />;
+  return <ScreenManager />;
 }

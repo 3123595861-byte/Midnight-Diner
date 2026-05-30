@@ -1,3 +1,4 @@
+import type { CookPrecheckContext } from "@/lib/ai/prompts";
 import type { LLMCookResponse } from "@/lib/types/ai";
 import type { StarRating } from "@/lib/types/game";
 import { getArkClient } from "@/lib/ai/client";
@@ -69,6 +70,8 @@ function parseLLMResponse(raw: string): LLMCookResponse {
 export async function generateCookResult(payload: {
   guestStory: string;
   playerRecipe: string;
+  currentDay: number;
+  precheck: CookPrecheckContext;
 }): Promise<LLMCookResponse> {
   const textEndpoint = process.env.ARK_TEXT_ENDPOINT;
   if (!textEndpoint) {
