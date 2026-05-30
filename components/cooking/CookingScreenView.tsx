@@ -161,12 +161,14 @@ export function CookingScreenView({ visible }: CookingScreenViewProps) {
           )}
 
           {phase === "cooking" && (
-            <div className="cooking-result-stage order-fade-in">
+            <div className="cooking-result-stage order-fade-in absolute inset-0">
               <ChefThoughtPanel
                 value={chefThought}
                 onChange={setChefThought}
               />
-              <FoodResultPanel status={foodStatus} />
+              <div className="absolute top-[20%] right-[10%] w-[40%]">
+                <FoodResultPanel status={foodStatus} />
+              </div>
             </div>
           )}
         </div>
