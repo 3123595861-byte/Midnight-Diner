@@ -2,7 +2,9 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { CONFIG } from "@/components/order/config";
-import { generateAIOrder } from "@/components/order/generateAIOrder";
+import { loadGuestOrder, prefetchNextGuestOrder } from "@/components/order/guestPrefetch";
+import { clearCurrentGuest, setCurrentGuest } from "@/components/order/guestStore";
+import { rememberGuestId } from "@/components/order/guestSession";
 import { goToCookingPage } from "@/components/order/goToCookingPage";
 import {
   registerMoneyUpdater,
@@ -38,24 +40,39 @@ export function OrderScreenView({ visible }: OrderScreenProps) {
   const [currentPage, setCurrentPage] = useState(0);
   const [fadePhase, setFadePhase] = useState<"in" | "out" | "idle">("in");
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   const isLastPage = pages.length > 0 && currentPage >= pages.length - 1;
-  const cookEnabled = isLastPage && !loading;
+  const cookEnabled = isLastPage && !loading && !loadError;
 
-  /** 加载点单内容（当前为示例文本，后续换 generateAIOrder AI 接口） */
+  /** 顾客进店：从 GET /api/guest 加载故事并分页展示 */
   useEffect(() => {
     if (!visible) return;
 
     let cancelled = false;
     setLoading(true);
+    setLoadError(null);
+    setPages([]);
     setCurrentPage(0);
     setFadePhase("in");
 
-    generateAIOrder().then((rawPages) => {
-      if (cancelled) return;
-      setPages(paginateText(rawPages));
-      setLoading(false);
-    });
+    loadGuestOrder()
+      .then(({ guest, storyPages }) => {
+        if (cancelled) return;
+        rememberGuestId(guest.guest_id, CONFIG.guest.recentExcludeCount);
+        setCurrentGuest(guest);
+        setPages(paginateText(storyPages));
+        setLoading(false);
+        prefetchNextGuestOrder();
+      })
+      .catch((error: unknown) => {
+        if (cancelled) return;
+        clearCurrentGuest();
+        setLoadError(
+          error instanceof Error ? error.message : "客人故事加载失败",
+        );
+        setLoading(false);
+      });
 
     return () => {
       cancelled = true;
@@ -152,7 +169,7 @@ export function OrderScreenView({ visible }: OrderScreenProps) {
             />
           )}
 
-          {loading && (
+          {(loading || loadError) && (
             <div
               className="order-pixel-panel order-pixel-text absolute"
               style={{
@@ -165,7 +182,7 @@ export function OrderScreenView({ visible }: OrderScreenProps) {
                 fontSize: CONFIG.font.size,
               }}
             >
-              加载中...
+              {loading ? "倾听顾客故事中..." : loadError}
             </div>
           )}
 

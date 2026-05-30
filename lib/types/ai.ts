@@ -81,6 +81,17 @@ export interface GuestApiSuccessData {
   guests_total: number;
 }
 
+/** LLM 生成客人故事的 JSON 结构（仅服务端使用，不返回给前端） */
+export interface LLMGeneratedGuest {
+  name: string;
+  story: string;
+  core_ingredient_ids: string[];
+  acceptable_ingredient_ids: string[];
+  hinted_food?: string;
+  difficulty: string;
+  asset_key: string;
+}
+
 export interface GuestApiRouteResponse {
   success: boolean;
   data?: GuestApiSuccessData;

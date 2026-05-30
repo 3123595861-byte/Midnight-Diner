@@ -1,5 +1,84 @@
 import type { GuestStoryDifficulty } from "@/lib/types/guest";
 
+export const GUEST_CHARACTER_ASSETS = [
+  "Customer1",
+  "customer2",
+  "Customer3",
+  "customer4",
+] as const;
+
+export const GUEST_STORY_SYSTEM_PROMPT = `
+你是《深夜食堂》编剧。为刚进店的食客写点单故事。
+只输出 JSON，不要 Markdown：{"name":"简短称呼","story":"中文故事"}
+story 80~150 字，第一人称对「老板」说话，深夜治愈氛围，每次内容必须不同。
+不要在 story 里直接写出【禁止提及的食材】。
+`.trim();
+
+export function buildGuestStoryUserMessage(payload: {
+  day: number;
+  difficulty: GuestStoryDifficulty;
+  coreIngredientNames: string[];
+  hintedFood: string;
+  personaHint: string;
+  moodHint: string;
+  avoidNames: string[];
+}): string {
+  const difficultyRule =
+    payload.difficulty === "direct"
+      ? "较明确说出想吃什么类型。"
+      : payload.difficulty === "hinted"
+        ? "只暗示，不说菜名。"
+        : "非常抽象，用记忆、情绪、气味形容想吃的食物。";
+
+  const avoidLine =
+    payload.avoidNames.length > 0
+      ? `避开这些近期角色：${payload.avoidNames.join("、")}。`
+      : "人物与经历须与常见套路不同。";
+
+  return [
+    `第${payload.day}天。难度：${payload.difficulty}（${difficultyRule}）`,
+    `内心想吃的食物：${payload.hintedFood}（与${payload.coreIngredientNames.join("、")}相关，story 里勿直说这些食材名）`,
+    `灵感：${payload.personaHint}，${payload.moodHint}。${avoidLine}`,
+  ].join("\n");
+}
+
+/** @deprecated 旧版全量 JSON 生成，已由 GUEST_STORY_SYSTEM_PROMPT + 服务端定食材替代 */
+export const GUEST_SYSTEM_PROMPT = GUEST_STORY_SYSTEM_PROMPT;
+
+export function difficultyForDay(day: number): GuestStoryDifficulty {
+  if (day <= 1) return "direct";
+  if (day === 2) return "hinted";
+  return "abstract";
+}
+
+export function buildGuestUserMessage(payload: {
+  day: number;
+  index: number;
+  difficulty: GuestStoryDifficulty;
+  ingredientCatalog: string;
+  personaHint: string;
+  moodHint: string;
+  avoidNames: string[];
+}): string {
+  const avoidLine =
+    payload.avoidNames.length > 0
+      ? `【避免重复】以下称呼/类型近期已出现，请换完全不同的人物与故事：${payload.avoidNames.join("、")}`
+      : "【避免重复】请确保人物身份、经历与往期不同。";
+
+  return [
+    "请生成一位全新食客并输出 JSON。",
+    "",
+    `【current_day】${payload.day}`,
+    `【guest_index_today】${payload.index}（当天第 ${payload.index + 1} 位客人，0-based）`,
+    `【target_difficulty】${payload.difficulty}`,
+    `【创作灵感】人物类型参考：${payload.personaHint}；情绪基调：${payload.moodHint}`,
+    avoidLine,
+    "",
+    "【可用食材库】格式：id | 名称",
+    payload.ingredientCatalog,
+  ].join("\n");
+}
+
 export const COOK_SYSTEM_PROMPT = `
 你是一个运行在《深夜食堂》游戏后台的剧情与数值裁判。
 

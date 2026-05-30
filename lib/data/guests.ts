@@ -1,4 +1,5 @@
 import type { GuestStoryDifficulty } from "@/lib/types/guest";
+import { getGeneratedGuest } from "@/lib/game/generated-guest-cache";
 
 export interface GuestEntry {
   guestId: string;
@@ -118,7 +119,77 @@ export function getGuestCountForDay(day: number): number {
   return GUESTS_BY_DAY[day]?.length ?? 0;
 }
 
+export function getAvailableDays(): number[] {
+  return Object.keys(GUESTS_BY_DAY)
+    .map(Number)
+    .sort((a, b) => a - b);
+}
+
+export interface GuestSlot {
+  guest: GuestEntry;
+  day: number;
+  index: number;
+}
+
+/** 在指定天数内随机选一位客人，可排除最近出现过的 guest_id */
+export function pickRandomGuestForDay(
+  day: number,
+  excludeGuestIds: string[] = [],
+): GuestSlot | null {
+  const guests = GUESTS_BY_DAY[day];
+  if (!guests?.length) return null;
+
+  const slots: GuestSlot[] = guests.map((guest, index) => ({
+    guest,
+    day,
+    index,
+  }));
+
+  const filtered = slots.filter(
+    ({ guest }) => !excludeGuestIds.includes(guest.guestId),
+  );
+  const pool = filtered.length > 0 ? filtered : slots;
+
+  return pool[Math.floor(Math.random() * pool.length)] ?? null;
+}
+
+/** 从全部天数客人池中随机选一位（MVP 内容池更大，减少重复感） */
+export function pickRandomGuest(
+  excludeGuestIds: string[] = [],
+): GuestSlot | null {
+  const slots: GuestSlot[] = getAvailableDays().flatMap((day) =>
+    (GUESTS_BY_DAY[day] ?? []).map((guest, index) => ({
+      guest,
+      day,
+      index,
+    })),
+  );
+
+  if (slots.length === 0) return null;
+
+  const filtered = slots.filter(
+    ({ guest }) => !excludeGuestIds.includes(guest.guestId),
+  );
+  const pool = filtered.length > 0 ? filtered : slots;
+
+  return pool[Math.floor(Math.random() * pool.length)] ?? null;
+}
+
 export function findGuestById(guestId: string): GuestEntry | null {
+  const generated = getGeneratedGuest(guestId);
+  if (generated) {
+    return {
+      guestId: generated.guestId,
+      name: generated.name,
+      story: generated.story,
+      coreIngredientIds: generated.coreIngredientIds,
+      acceptableIngredientIds: generated.acceptableIngredientIds,
+      hintedFood: generated.hintedFood ?? "",
+      difficulty: generated.difficulty,
+      assetKey: generated.assetKey,
+    };
+  }
+
   for (const guests of Object.values(GUESTS_BY_DAY)) {
     const found = guests.find((g) => g.guestId === guestId);
     if (found) return found;

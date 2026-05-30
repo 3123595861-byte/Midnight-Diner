@@ -2,6 +2,7 @@ import type { CookPrecheckContext } from "@/lib/ai/prompts";
 import type { LLMCookResponse } from "@/lib/types/ai";
 import type { StarRating } from "@/lib/types/game";
 import { getArkClient } from "@/lib/ai/client";
+import { parseJsonObject } from "@/lib/ai/parse-json-response";
 import { COOK_SYSTEM_PROMPT, buildCookUserMessage } from "@/lib/ai/prompts";
 
 const VALID_STAR_RATINGS: StarRating[] = [0, 1, 2, 2.5, 3, 4, 5];
@@ -17,28 +18,8 @@ function parseStarRating(value: unknown): StarRating {
   return num as StarRating;
 }
 
-function extractJsonContent(raw: string): string {
-  const trimmed = raw.trim();
-  const fenced = trimmed.match(/```(?:json)?\s*([\s\S]*?)```/i);
-  if (fenced?.[1]) {
-    return fenced[1].trim();
-  }
-  return trimmed;
-}
-
 function parseLLMResponse(raw: string): LLMCookResponse {
-  let parsed: unknown;
-  try {
-    parsed = JSON.parse(extractJsonContent(raw));
-  } catch {
-    throw new Error("LLM response is not valid JSON");
-  }
-
-  if (!parsed || typeof parsed !== "object") {
-    throw new Error("LLM response must be a JSON object");
-  }
-
-  const record = parsed as Record<string, unknown>;
+  const record = parseJsonObject(raw);
   const food_name = record.food_name;
   const evaluation = record.evaluation;
   const image_prompt = record.image_prompt;

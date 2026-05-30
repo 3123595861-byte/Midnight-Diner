@@ -8,6 +8,7 @@ import {
 import { CookingScreen } from "@/components/screens/CookingScreen";
 import { StartScreen } from "@/components/screens/StartScreen";
 import { OrderScreen } from "@/components/screens/OrderScreen";
+import { prefetchGuestOrder } from "@/components/order/guestPrefetch";
 
 export type AppScreen = 0 | 1 | 2;
 
@@ -16,6 +17,10 @@ export type AppScreen = 0 | 1 | 2;
  */
 export function ScreenManager() {
   const [screen, setScreen] = useState<AppScreen>(0);
+
+  useEffect(() => {
+    prefetchGuestOrder();
+  }, []);
 
   useEffect(() => {
     registerCookingNavigator(() => setScreen(2));

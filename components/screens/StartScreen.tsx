@@ -1,6 +1,8 @@
 "use client";
 
+import { useEffect } from "react";
 import { PixelButton } from "@/components/ui/PixelButton";
+import { prefetchGuestOrder } from "@/components/order/guestPrefetch";
 
 interface StartScreenProps {
   visible: boolean;
@@ -9,6 +11,11 @@ interface StartScreenProps {
 
 /** 界面0：开始页面 */
 export function StartScreen({ visible, onStart }: StartScreenProps) {
+  useEffect(() => {
+    if (!visible) return;
+    prefetchGuestOrder();
+  }, [visible]);
+
   return (
     <div
       id="screen-0"

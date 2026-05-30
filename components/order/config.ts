@@ -14,6 +14,11 @@ export const CONFIG = {
     "/assets/scenes/ordering/mainscene3.png",
   ],
 
+  /** 客人（LLM 实时生成，exclude 仅用于避免近期重复角色） */
+  guest: {
+    recentExcludeCount: 4,
+  },
+
   /** 金额显示 */
   money: {
     initial: 1000,
