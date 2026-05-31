@@ -7,12 +7,17 @@ export type FoodPanelStatus = "cooking" | "ready";
 interface FoodResultPanelProps {
   status: FoodPanelStatus;
   imageUrl?: string | null;
-  // 新增：预留给 AI 生成的菜名参数
-  foodName?: string | null; 
+  foodName?: string | null;
+  onServe?: () => void;
 }
 
-/** 右侧：出锅料理展示 + 菜名预留 + 上菜按钮 */
-export function FoodResultPanel({ status, imageUrl, foodName }: FoodResultPanelProps) {
+/** 右侧：出锅料理展示 + 菜名 + 上菜按钮 */
+export function FoodResultPanel({
+  status,
+  imageUrl,
+  foodName,
+  onServe,
+}: FoodResultPanelProps) {
   const { resultStage, font, colors } = COOKING_CONFIG;
   const isCooking = status === "cooking";
 
@@ -95,12 +100,13 @@ export function FoodResultPanel({ status, imageUrl, foodName }: FoodResultPanelP
           {/* 右下角：上菜按钮 (移除了原本的 absolute 定位) */}
           <button
             type="button"
-            className="cooking-serve-btn order-pixel-text px-6 py-2 shrink-0 border-2 border-black bg-yellow-400 hover:bg-yellow-300 disabled:opacity-50 disabled:bg-gray-300 disabled:cursor-not-allowed shadow-[4px_4px_0_0_rgba(0,0,0,1)] active:translate-x-1 active:translate-y-1 active:shadow-none transition-all"
+            className="cooking-serve-btn order-pixel-text px-6 py-2 shrink-0 border-2 border-black bg-yellow-400 hover:bg-yellow-300 disabled:opacity-50 disabled:bg-gray-300 disabled:cursor-not-allowed shadow-[4px_4px_0_0_rgba(0,0,0,1)] active:translate-x-1 active:translate-y-1 active:shadow-none transition-all cursor-pointer"
             style={{
               fontSize: font.size,
             }}
             disabled={isCooking}
             aria-disabled={isCooking}
+            onClick={onServe}
           >
             上菜 ➔
           </button>

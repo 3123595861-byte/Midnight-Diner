@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useState } from "react";
 
 export interface UseTypewriterOptions {
   /** 为 false 时立即显示全文（如翻回上一页） */
@@ -31,25 +31,15 @@ export function useTypewriter(
   } = options;
 
   const chars = useMemo(() => Array.from(text), [text]);
-  const [visibleCount, setVisibleCount] = useState(enabled ? 0 : chars.length);
-  const prevEnabledRef = useRef(enabled);
-  const prevTextRef = useRef(text);
+  const [visibleCount, setVisibleCount] = useState(0);
 
-  useEffect(() => {
-    const textChanged = prevTextRef.current !== text;
-    const enabledChanged = prevEnabledRef.current !== enabled;
-    prevTextRef.current = text;
-    prevEnabledRef.current = enabled;
-
+  useLayoutEffect(() => {
     if (!enabled) {
       setVisibleCount(chars.length);
       return;
     }
-
-    if (textChanged || (enabledChanged && enabled)) {
-      setVisibleCount(0);
-    }
-  }, [text, enabled, chars.length]);
+    setVisibleCount(0);
+  }, [enabled, text, chars.length]);
 
   useEffect(() => {
     if (!enabled || visibleCount >= chars.length) return;
@@ -72,10 +62,12 @@ export function useTypewriter(
     punctuationDelayMs,
   ]);
 
-  const isComplete = visibleCount >= chars.length;
+  const isComplete = enabled && visibleCount >= chars.length;
 
   return {
-    displayedText: chars.slice(0, visibleCount).join(""),
+    displayedText: enabled
+      ? chars.slice(0, visibleCount).join("")
+      : chars.join(""),
     isComplete,
     showCursor: enabled && !isComplete,
   };

@@ -103,7 +103,7 @@ export function toPlayerRecipe(
     return { ingredientIds: [], utensilId: "" };
   }
 
-  const asRecord = player_recipe as Record<string, unknown>;
+  const asRecord = player_recipe as unknown as Record<string, unknown>;
   const ingredientIds =
     Array.isArray(asRecord.ingredientIds)
       ? asRecord.ingredientIds

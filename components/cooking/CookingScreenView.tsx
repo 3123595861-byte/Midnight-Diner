@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import { COOKING_CONFIG, type CookingTab } from "@/components/cooking/config";
 import {
@@ -18,7 +18,17 @@ import {
   type FoodPanelStatus,
 } from "@/components/cooking/FoodResultPanel";
 import { useUIScale } from "@/components/order/useUIScale";
-import type { CookApiRouteResponse } from "@/lib/types/ai";
+import {
+  getChefMessageDraft,
+  setChefMessageDraft,
+} from "@/components/cooking/cookingSession";
+import {
+  getOrderBackgroundUrl,
+  setPendingChefMessage,
+  setServingPayload,
+} from "@/components/serving/servingSession";
+import { navigateToServingScreen } from "@/components/serving/screenNav";
+import type { CookApiSuccessData, CookApiRouteResponse } from "@/lib/types/ai";
 
 interface CookingScreenViewProps {
   visible: boolean;
@@ -38,9 +48,13 @@ export function CookingScreenView({ visible }: CookingScreenViewProps) {
     null,
   );
   const [chefThought, setChefThought] = useState("");
+  const chefThoughtRef = useRef("");
   const [foodStatus, setFoodStatus] = useState<FoodPanelStatus>("cooking");
   const [foodImageUrl, setFoodImageUrl] = useState<string | null>(null);
   const [foodName, setFoodName] = useState<string | null>(null);
+  const [cookResult, setCookResult] = useState<CookApiSuccessData | null>(
+    null,
+  );
   const [isCookingNow, setIsCookingNow] = useState(false);
 
   const tabItems = useMemo(
@@ -105,6 +119,7 @@ export function CookingScreenView({ visible }: CookingScreenViewProps) {
     setIsCookingNow(true);
     setFoodImageUrl(null);
     setFoodName(null);
+    setCookResult(null);
 
     try {
       const response = await fetch("/api/cook", {
@@ -129,6 +144,7 @@ export function CookingScreenView({ visible }: CookingScreenViewProps) {
       }
 
       if (result.success && result.data) {
+        setCookResult(result.data);
         setFoodImageUrl(result.data.image_url || null);
         setFoodName(result.data.food_name || null);
         setFoodStatus("ready");
@@ -144,6 +160,36 @@ export function CookingScreenView({ visible }: CookingScreenViewProps) {
       setIsCookingNow(false);
     }
   }, [chefThought, hasIngredients, isCookingNow, selectedItems, selectedUtensilId]);
+
+  const handleChefThoughtChange = useCallback((value: string) => {
+    chefThoughtRef.current = value;
+    setChefMessageDraft(value);
+    setPendingChefMessage(value);
+    setChefThought(value);
+  }, []);
+
+  const handleServe = useCallback(() => {
+    if (!cookResult || foodStatus !== "ready") return;
+
+    const textarea = document.querySelector<HTMLTextAreaElement>(
+      '[aria-label="想对顾客说的话"]',
+    );
+    const chefMessage = (
+      textarea?.value ??
+      chefThoughtRef.current ??
+      getChefMessageDraft()
+    ).trim();
+
+    setServingPayload({
+      backgroundUrl: getOrderBackgroundUrl(),
+      chefMessage,
+      customerEvaluation: cookResult.evaluation,
+      foodName: cookResult.food_name,
+      starRating: cookResult.star_rating,
+      settlement: cookResult.settlement,
+    });
+    navigateToServingScreen();
+  }, [cookResult, foodStatus]);
 
   const uiStyle = useMemo<CSSProperties>(
     () => ({
@@ -216,13 +262,14 @@ export function CookingScreenView({ visible }: CookingScreenViewProps) {
             <div className="cooking-result-stage order-fade-in absolute inset-0">
               <ChefThoughtPanel
                 value={chefThought}
-                onChange={setChefThought}
+                onChange={handleChefThoughtChange}
               />
               <div className="absolute top-[20%] right-[10%] w-[40%]">
                 <FoodResultPanel
                   status={foodStatus}
                   imageUrl={foodImageUrl}
                   foodName={foodName}
+                  onServe={handleServe}
                 />
               </div>
             </div>

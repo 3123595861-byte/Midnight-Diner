@@ -11,6 +11,7 @@ import {
   unregisterMoneyUpdater,
 } from "@/components/order/moneyStore";
 import { paginateText } from "@/components/order/paginateText";
+import { setOrderBackgroundUrl } from "@/components/serving/servingSession";
 import { MoneyDisplay } from "@/components/order/MoneyDisplay";
 import { OrderDialog } from "@/components/order/OrderDialog";
 import { StartCookButton } from "@/components/order/StartCookButton";
@@ -33,7 +34,11 @@ function pickRandomBackground(): string {
  */
 export function OrderScreenView({ visible }: OrderScreenProps) {
   const scale = useUIScale();
-  const [backgroundUrl] = useState(pickRandomBackground);
+  const [backgroundUrl] = useState(() => {
+    const url = pickRandomBackground();
+    setOrderBackgroundUrl(url);
+    return url;
+  });
   const [money, setMoney] = useState<number>(CONFIG.money.initial);
   const [moneyAnimating, setMoneyAnimating] = useState(false);
   const [pages, setPages] = useState<string[]>([]);
@@ -111,12 +116,13 @@ export function OrderScreenView({ visible }: OrderScreenProps) {
 
   const handleStartCook = useCallback(() => {
     if (!cookEnabled) return;
+    setOrderBackgroundUrl(backgroundUrl);
     setFadePhase("out");
     window.setTimeout(() => {
       goToCookingPage();
       setFadePhase("idle");
     }, CONFIG.fadeDuration);
-  }, [cookEnabled]);
+  }, [backgroundUrl, cookEnabled]);
 
   const uiStyle = useMemo(
     () => ({

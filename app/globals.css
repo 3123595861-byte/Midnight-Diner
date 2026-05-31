@@ -640,3 +640,194 @@ body {
 .cooking-serve-btn:disabled {
   cursor: not-allowed;
 }
+
+/* ══════════════════════════════════════════
+   界面3：上菜对话 / 今日结算
+   ══════════════════════════════════════════ */
+
+.serving-screen-root {
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+.serving-dialogue-box {
+  cursor: pointer;
+  background: rgba(18, 14, 12, 0.82);
+  border: 2px solid #ffffff;
+  box-shadow: 4px 4px 0 0 rgba(0, 0, 0, 0.55);
+  -webkit-font-smoothing: none;
+}
+
+.serving-dialogue-speaker {
+  margin: 0 0 12px;
+  font-family: var(--font-press-start), "Courier New", monospace;
+  font-size: 13px;
+  color: #f5d76e;
+}
+
+.serving-dialogue-text {
+  margin: 0;
+  font-family: var(--font-press-start), "Courier New", monospace;
+  font-size: 14px;
+  line-height: 1.75;
+  color: #ffffff;
+  white-space: pre-wrap;
+}
+
+.serving-dialogue-cursor {
+  animation: serving-cursor-blink 0.8s steps(1) infinite;
+}
+
+@keyframes serving-cursor-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+.serving-dialogue-hint {
+  margin: 12px 0 0;
+  font-family: "Courier New", monospace;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.55);
+  text-align: right;
+}
+
+.serving-dialogue-next {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  margin-top: 12px;
+  margin-left: auto;
+  padding: 8px 16px;
+  font-family: var(--font-press-start), "Courier New", monospace;
+  font-size: 12px;
+  color: #ffffff;
+  cursor: pointer;
+  background: rgba(40, 32, 28, 0.92);
+  border: 2px solid #ffffff;
+  box-shadow: 3px 3px 0 0 rgba(0, 0, 0, 0.5);
+  -webkit-font-smoothing: none;
+  transition:
+    background-color 0.12s steps(1),
+    transform 0.12s steps(1);
+}
+
+.serving-dialogue-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.serving-dialogue-next:hover {
+  background: rgba(60, 48, 40, 0.95);
+}
+
+.serving-dialogue-next:active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 0 rgba(0, 0, 0, 0.5);
+}
+
+.serving-dialogue-next__arrow {
+  font-size: 14px;
+}
+
+.serving-settlement-nav {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  padding: 10px 16px;
+  font-family: var(--font-press-start), "Courier New", monospace;
+  font-size: 13px;
+  color: #ffffff;
+  cursor: pointer;
+  background: rgba(18, 14, 12, 0.88);
+  border: 2px solid #ffffff;
+  box-shadow: 3px 3px 0 0 rgba(0, 0, 0, 0.5);
+  -webkit-font-smoothing: none;
+  transition:
+    background-color 0.12s steps(1),
+    transform 0.12s steps(1);
+}
+
+.serving-settlement-nav:hover {
+  background: rgba(40, 32, 28, 0.92);
+}
+
+.serving-settlement-nav:active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 0 rgba(0, 0, 0, 0.5);
+}
+
+.serving-settlement-nav__arrow {
+  font-size: 16px;
+}
+
+.serving-settlement-backdrop {
+  background: rgba(0, 0, 0, 0.45);
+}
+
+.serving-settlement-panel {
+  width: min(420px, 90%);
+  padding: 24px;
+  background: rgba(18, 14, 12, 0.92);
+  border: 2px solid #ffffff;
+  box-shadow: 6px 6px 0 0 rgba(0, 0, 0, 0.55);
+}
+
+.serving-settlement-title {
+  margin: 0 0 20px;
+  font-family: var(--font-press-start), "Courier New", monospace;
+  font-size: 16px;
+  color: #f5d76e;
+  text-align: center;
+}
+
+.serving-settlement-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-family: var(--font-press-start), "Courier New", monospace;
+  font-size: 12px;
+  color: #ffffff;
+}
+
+.serving-settlement-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.serving-settlement-highlight {
+  color: #f5d76e;
+}
+
+.serving-settlement-warn {
+  margin: 16px 0 0;
+  font-family: "Courier New", monospace;
+  font-size: 12px;
+  color: #ff8a80;
+  text-align: center;
+}
+
+.serving-settlement-close {
+  display: block;
+  width: 100%;
+  margin-top: 20px;
+  padding: 10px;
+  font-family: var(--font-press-start), "Courier New", monospace;
+  font-size: 12px;
+  color: #ffffff;
+  cursor: pointer;
+  background: transparent;
+  border: 2px solid #ffffff;
+}
+
+.serving-settlement-close:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
