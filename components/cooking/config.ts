@@ -56,12 +56,11 @@ export const COOKING_CONFIG = {
     gap: 10,
   },
 
-  // 👇 这里新增了 "staple"
   tabs: ["vegetable", "meat", "staple", "utensil", "seasoning"] as const,
   tabLabels: {
     vegetable: "蔬菜",
     meat: "肉品",
-    staple: "主食", // 👇 新增主食的中文显示标签
+    staple: "主食",
     utensil: "厨具",
     seasoning: "调料",
   },

@@ -18,6 +18,8 @@ import { ServingScreen } from "@/components/screens/ServingScreen";
 import { StartScreen } from "@/components/screens/StartScreen";
 import { OrderScreen } from "@/components/screens/OrderScreen";
 import { prefetchGuestOrder } from "@/components/order/guestPrefetch";
+import { setCurrentMoney } from "@/components/order/moneyStore";
+import { INITIAL_MONEY } from "@/lib/constants/game";
 
 export type AppScreen = 0 | 1 | 2 | 3;
 
@@ -50,7 +52,10 @@ export function ScreenManager() {
     <div className="relative h-screen w-screen overflow-hidden bg-black">
       <StartScreen
         visible={screen === 0}
-        onStart={() => setScreen(1)}
+        onStart={() => {
+          setCurrentMoney(INITIAL_MONEY);
+          setScreen(1);
+        }}
       />
       <OrderScreen visible={screen === 1} />
       <CookingScreen visible={screen === 2} />

@@ -1,10 +1,9 @@
 import type { PlayerRecipe } from "@/lib/types/ingredient";
 import type { CookApiSuccessData } from "@/lib/types/ai";
-import { getIngredientById } from "@/lib/data/ingredients";
+import { getIngredientById, getIngredientsByIds } from "@/lib/data/ingredients";
 import { getUtensilName } from "@/lib/data/utensils";
 import { findGuestById } from "@/lib/data/guests";
 import { findIncompatiblePair, isPoisonousCombo } from "@/lib/data/incompatibilities";
-import { getIngredientsByIds } from "@/lib/data/ingredients";
 import {
   calculateIngredientCost,
   hasCoreIngredient,
@@ -14,6 +13,13 @@ import { buildSettlement, isBankrupt } from "@/lib/game/settlement";
 import { generateCookResult } from "@/lib/ai/llm";
 import { generateFoodImage } from "@/lib/ai/image";
 import { INITIAL_MONEY } from "@/lib/constants/game";
+
+const MAIN_INGREDIENT_CATEGORIES = new Set([
+  "vegetable",
+  "meat",
+  "seafood",
+  "staple",
+]);
 
 export interface CookServiceInput {
   guestStory: string;
@@ -43,6 +49,11 @@ export async function executeCookFlow(
     explicitCoreIds ?? guest?.coreIngredientIds ?? [];
   const acceptableIngredientIds =
     explicitAcceptableIds ?? guest?.acceptableIngredientIds ?? [];
+
+  const selectedIngredients = getIngredientsByIds(playerRecipe.ingredientIds);
+  const hasMainIngredient = selectedIngredients.some((item) =>
+    MAIN_INGREDIENT_CATEGORIES.has(item.category),
+  );
 
   const ingredientCost = calculateIngredientCost(playerRecipe.ingredientIds);
   const incompatible = findIncompatiblePair(playerRecipe.ingredientIds);
@@ -81,6 +92,7 @@ export async function executeCookFlow(
     rawStarRating: llmResult.star_rating,
     isPoisonous,
     hasCoreIngredient: hasCore,
+    hasMainIngredient,
     incompatibleLabel: incompatible?.label,
   });
 

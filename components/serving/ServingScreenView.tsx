@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { CONFIG } from "@/components/order/config";
 import { useUIScale } from "@/components/order/useUIScale";
 import { DialogueBox } from "@/components/serving/DialogueBox";
@@ -41,13 +41,24 @@ export function ServingScreenView({ visible }: ServingScreenViewProps) {
   const scale = useUIScale();
   const [payload, setPayload] = useState<ServingSessionPayload | null>(null);
   const [phase, setPhase] = useState<DialoguePhase>("chef");
+  const moneyAppliedRef = useRef(false);
 
   useEffect(() => {
-    if (!visible) return;
+    if (!visible) {
+      moneyAppliedRef.current = false;
+      return;
+    }
+
     setPayload(resolvePayload());
     setPhase("chef");
     clearPendingChefMessage();
   }, [visible]);
+
+  const applySettlementMoney = useCallback(() => {
+    if (!payload || moneyAppliedRef.current) return;
+    updateMoney(payload.settlement.net_change);
+    moneyAppliedRef.current = true;
+  }, [payload]);
 
   const handleChefNext = useCallback(() => {
     setPhase("customer");
@@ -57,13 +68,16 @@ export function ServingScreenView({ visible }: ServingScreenViewProps) {
     setPhase("ready");
   }, []);
 
+  const handleOpenSettlement = useCallback(() => {
+    applySettlementMoney();
+    setPhase("settlement");
+  }, [applySettlementMoney]);
+
   const handleSettlementClose = useCallback(() => {
-    if (payload) {
-      updateMoney(payload.settlement.net_change);
-    }
+    applySettlementMoney();
     clearServingPayload();
     navigateToOrderScreen();
-  }, [payload]);
+  }, [applySettlementMoney]);
 
   const uiStyle = useMemo(
     () => ({
@@ -83,7 +97,28 @@ export function ServingScreenView({ visible }: ServingScreenViewProps) {
     [scale],
   );
 
-  if (!visible || !payload) return null;
+  if (!visible) return null;
+
+  if (!payload) {
+    return (
+      <div
+        id="screen-3"
+        className="serving-screen-root order-fade-in absolute inset-0 flex items-center justify-center bg-black"
+        aria-hidden={!visible}
+      >
+        <div className="order-pixel-panel order-pixel-text p-6 text-center">
+          <p className="mb-4">结算数据丢失，请从上菜流程重新进入。</p>
+          <button
+            type="button"
+            className="serving-settlement-close"
+            onClick={() => navigateToOrderScreen()}
+          >
+            返回点单
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   const chefText =
     payload.chefMessage.trim() || "（厨师默默把菜端了上去……）";
@@ -137,7 +172,7 @@ export function ServingScreenView({ visible }: ServingScreenViewProps) {
           ) : null}
 
           {phase === "ready" ? (
-            <SettlementNavButton onClick={() => setPhase("settlement")} />
+            <SettlementNavButton onClick={handleOpenSettlement} />
           ) : null}
         </div>
       </div>

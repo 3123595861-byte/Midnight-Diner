@@ -3,6 +3,7 @@ import type {
   CookPlayerRecipeBody,
 } from "@/lib/types/ai";
 import type { PlayerRecipe } from "@/lib/types/ingredient";
+import { DEFAULT_UTENSIL_ID } from "@/lib/data/utensils";
 
 function isNonEmptyString(value: unknown): value is string {
   return typeof value === "string" && value.trim().length > 0;
@@ -39,7 +40,7 @@ function parsePlayerRecipe(value: unknown): PlayerRecipe | string | null {
 
   return {
     ingredientIds: ingredient_ids.map((item) => item.trim()),
-    utensilId: utensil_id.trim() || "pot",
+    utensilId: utensil_id.trim() || DEFAULT_UTENSIL_ID,
   };
 }
 

@@ -1,16 +1,14 @@
 /** 食材相克组合：任意一对同时出现则视为 0 星（中毒/严重不适） */
 export const INCOMPATIBLE_PAIRS: [string, string][] = [
-  ["milk", "lemon"],
-  ["milk", "tomato"],
-  ["shrimp", "lemon"],
-  ["beer", "tofu"],
+  ["s33", "v17"],
+  ["m19", "s07"],
+  ["m21", "s05"],
 ];
 
 export const INCOMPATIBLE_PAIR_LABELS: Record<string, string> = {
-  "milk+lemon": "牛奶与柠檬",
-  "milk+tomato": "牛奶与番茄",
-  "shrimp+lemon": "虾与柠檬",
-  "beer+tofu": "啤酒与豆腐",
+  "s33+v17": "黄油与番茄",
+  "m19+s07": "虾仁与陈醋",
+  "m21+s05": "花蛤与生抽",
 };
 
 function pairKey(a: string, b: string): string {

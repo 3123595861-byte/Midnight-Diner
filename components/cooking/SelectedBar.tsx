@@ -6,20 +6,29 @@ import { COOKING_CONFIG } from "@/components/cooking/config";
 interface SelectedBarProps {
   items: CookCatalogItem[];
   onRemove: (id: string) => void;
+  subtotal: number;
 }
 
 /** 底部已选区：悬停显示右上角叉号取消 */
-export function SelectedBar({ items, onRemove }: SelectedBarProps) {
+export function SelectedBar({ items, onRemove, subtotal }: SelectedBarProps) {
   const { font, colors } = COOKING_CONFIG;
 
   return (
     <div className="cooking-selected-bar shrink-0 border-t-2 border-[#5D4037] pt-3">
-      <p
-        className="order-pixel-text mb-2"
-        style={{ fontSize: font.size, color: colors.text }}
-      >
-        已选 ({items.length})
-      </p>
+      <div className="mb-2 flex items-center justify-between gap-3">
+        <p
+          className="order-pixel-text"
+          style={{ fontSize: font.size, color: colors.text }}
+        >
+          已选 ({items.length})
+        </p>
+        <p
+          className="order-pixel-text"
+          style={{ fontSize: font.size, color: colors.text }}
+        >
+          预估总价 {subtotal}元
+        </p>
+      </div>
       <div className="flex min-h-[56px] flex-wrap gap-2">
         {items.length === 0 ? (
           <span

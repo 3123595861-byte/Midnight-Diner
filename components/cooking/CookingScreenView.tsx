@@ -31,6 +31,7 @@ import { navigateToServingScreen } from "@/components/serving/screenNav";
 import type { CookApiSuccessData, CookApiRouteResponse } from "@/lib/types/ai";
 import { getCurrentGuest } from "@/components/order/guestStore";
 import { getCurrentMoney } from "@/components/order/moneyStore";
+import { DEFAULT_UTENSIL_ID } from "@/lib/data/utensils";
 
 interface CookingScreenViewProps {
   visible: boolean;
@@ -85,14 +86,21 @@ export function CookingScreenView({ visible }: CookingScreenViewProps) {
       const utensil = getCatalogItem(selectedUtensilId);
       if (utensil) list.push(utensil);
     }
-    
-    // 优化：按照食材类型进行排序，让底部已选项更整洁
+
     return list.sort((a, b) => {
       const weightA = CATEGORY_SORT_WEIGHT[a.category] || 99;
       const weightB = CATEGORY_SORT_WEIGHT[b.category] || 99;
       return weightA - weightB;
     });
   }, [selectedIds, selectedUtensilId]);
+
+  const selectedIngredientSubtotal = useMemo(
+    () =>
+      selectedItems
+        .filter((item) => item.category !== "utensil")
+        .reduce((sum, item) => sum + item.price, 0),
+    [selectedItems],
+  );
 
   const hasIngredients = useMemo(
     () => selectedItems.some((item) => item.category !== "utensil"),
@@ -133,7 +141,7 @@ export function CookingScreenView({ visible }: CookingScreenViewProps) {
     const ingredientIds = selectedItems
       .filter((item) => item.category !== "utensil")
       .map((item) => item.id);
-    const utensilId = selectedUtensilId ?? "pot";
+    const utensilId = selectedUtensilId ?? DEFAULT_UTENSIL_ID;
 
     setPhase("cooking");
     setFoodStatus("cooking");
@@ -273,7 +281,11 @@ export function CookingScreenView({ visible }: CookingScreenViewProps) {
                 activeCategory={activeTab}
                 onToggle={handleToggle}
               />
-              <SelectedBar items={selectedItems} onRemove={handleRemove} />
+              <SelectedBar
+                items={selectedItems}
+                onRemove={handleRemove}
+                subtotal={selectedIngredientSubtotal}
+              />
               <StartCookingButton
                 enabled={hasIngredients}
                 onClick={handleStartCooking}

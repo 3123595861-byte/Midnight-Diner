@@ -100,10 +100,16 @@ export function OrderScreenView({ visible }: OrderScreenProps) {
     window.setTimeout(() => setMoneyAnimating(false), 350);
   }, []);
 
+  /** 注册全局 updateMoney，并从全局 store 同步余额（不在每次进入时重置） */
   useEffect(() => {
     if (!visible) return;
-    setCurrentMoney(CONFIG.money.initial);
-    setMoney(CONFIG.money.initial);
+
+    let balance = getCurrentMoney();
+    if (balance <= 0) {
+      balance = CONFIG.money.initial;
+      setCurrentMoney(balance);
+    }
+    setMoney(balance);
     registerMoneyUpdater(handleMoneyUpdate);
     return () => unregisterMoneyUpdater();
   }, [visible, handleMoneyUpdate]);
