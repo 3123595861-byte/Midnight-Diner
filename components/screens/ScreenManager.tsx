@@ -20,6 +20,7 @@ import { OrderScreen } from "@/components/screens/OrderScreen";
 import { prefetchGuestOrder } from "@/components/order/guestPrefetch";
 import { setCurrentMoney } from "@/components/order/moneyStore";
 import { INITIAL_MONEY } from "@/lib/constants/game";
+import { useGameAudio } from "@/hooks/useGameAudio";
 
 export type AppScreen = 0 | 1 | 2 | 3;
 
@@ -50,11 +51,14 @@ export function ScreenManager() {
     return () => unregisterOrderNavigator();
   }, []);
 
+  const { playBgm } = useGameAudio();
+
   const handleStart = () => {
     setCurrentMoney(INITIAL_MONEY);
     setCurrentDay(1);
     setSessionId(0);
     setScreen(1);
+    playBgm("musicback.mp3");
   };
 
   const handleContinue = () => {
