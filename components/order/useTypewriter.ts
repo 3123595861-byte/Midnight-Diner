@@ -62,7 +62,7 @@ export function useTypewriter(
     punctuationDelayMs,
   ]);
 
-  const isComplete = enabled && visibleCount >= chars.length;
+  const isComplete = !enabled || visibleCount >= chars.length;
 
   return {
     displayedText: enabled
