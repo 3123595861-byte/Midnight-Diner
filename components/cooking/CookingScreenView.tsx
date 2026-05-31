@@ -29,12 +29,25 @@ import {
 } from "@/components/serving/servingSession";
 import { navigateToServingScreen } from "@/components/serving/screenNav";
 import type { CookApiSuccessData, CookApiRouteResponse } from "@/lib/types/ai";
+import { getCurrentGuest } from "@/components/order/guestStore";
+import { getCurrentMoney } from "@/components/order/moneyStore";
 
 interface CookingScreenViewProps {
   visible: boolean;
 }
 
 type CookingPhase = "selecting" | "cooking";
+
+/** * 为已选食材定义显示顺序权重 
+ * 按照：主食 -> 肉品 -> 蔬菜 -> 调料 -> 厨具 排序
+ */
+const CATEGORY_SORT_WEIGHT: Record<string, number> = {
+  staple: 1,
+  meat: 2,
+  vegetable: 3,
+  seasoning: 4,
+  utensil: 5,
+};
 
 /**
  * 界面2：烹饪选料 → 开始烹饪 → 左右双框（心里话 / 出锅）
@@ -72,7 +85,13 @@ export function CookingScreenView({ visible }: CookingScreenViewProps) {
       const utensil = getCatalogItem(selectedUtensilId);
       if (utensil) list.push(utensil);
     }
-    return list;
+    
+    // 优化：按照食材类型进行排序，让底部已选项更整洁
+    return list.sort((a, b) => {
+      const weightA = CATEGORY_SORT_WEIGHT[a.category] || 99;
+      const weightB = CATEGORY_SORT_WEIGHT[b.category] || 99;
+      return weightA - weightB;
+    });
   }, [selectedIds, selectedUtensilId]);
 
   const hasIngredients = useMemo(
@@ -109,6 +128,8 @@ export function CookingScreenView({ visible }: CookingScreenViewProps) {
   const handleStartCooking = useCallback(async () => {
     if (!hasIngredients || isCookingNow) return;
 
+    // 这里依然只筛选非厨具作为 ingredientIds 传给后端
+    // staple 和 seasoning 会自动包含在内
     const ingredientIds = selectedItems
       .filter((item) => item.category !== "utensil")
       .map((item) => item.id);
@@ -122,19 +143,21 @@ export function CookingScreenView({ visible }: CookingScreenViewProps) {
     setCookResult(null);
 
     try {
+      const guest = getCurrentGuest();
       const response = await fetch("/api/cook", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          guest_story: chefThought.trim() || "请给顾客一句温柔的话",
+          guest_story: guest?.story ?? (chefThought.trim() || "请给顾客一句温柔的话"),
+          guest_id: guest?.guest_id,
           player_recipe: {
             ingredient_ids: ingredientIds,
             utensil_id: utensilId,
           },
-          current_day: 1,
-          current_money: 1000,
+          current_day: guest?.day ?? 1,
+          current_money: getCurrentMoney(),
         }),
       });
 

@@ -1,4 +1,5 @@
-export type IngredientCategory = "vegetable" | "meat" | "seafood" | "seasoning" | "other";
+// 修改后的食材分类联合类型，加入了 "staple"
+export type IngredientCategory = "vegetable" | "meat" | "seafood" | "seasoning" | "staple" | "other";
 
 export interface Ingredient {
   id: string;

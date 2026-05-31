@@ -7,7 +7,9 @@ import { clearCurrentGuest, setCurrentGuest } from "@/components/order/guestStor
 import { rememberGuestId } from "@/components/order/guestSession";
 import { goToCookingPage } from "@/components/order/goToCookingPage";
 import {
+  getCurrentMoney,
   registerMoneyUpdater,
+  setCurrentMoney,
   unregisterMoneyUpdater,
 } from "@/components/order/moneyStore";
 import { paginateText } from "@/components/order/paginateText";
@@ -100,6 +102,8 @@ export function OrderScreenView({ visible }: OrderScreenProps) {
 
   useEffect(() => {
     if (!visible) return;
+    setCurrentMoney(CONFIG.money.initial);
+    setMoney(CONFIG.money.initial);
     registerMoneyUpdater(handleMoneyUpdate);
     return () => unregisterMoneyUpdater();
   }, [visible, handleMoneyUpdate]);

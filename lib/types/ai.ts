@@ -1,4 +1,4 @@
-import type { PlayerRecipe } from "@/lib/types/ingredient";
+import type { PlayerRecipe, IngredientCategory } from "@/lib/types/ingredient"; // 👈 引入规范的食材分类类型
 import type { StarRating } from "@/lib/types/game";
 import type { StarAdjustmentReason } from "@/lib/game/scoring";
 
@@ -111,10 +111,13 @@ export interface CatalogApiSuccessData {
   guests_per_day: number;
   poison_penalty: number;
   star_income_multiplier: Record<StarRating, number>;
+  /** * 广义的食材列表 
+   * 包含："vegetable" | "meat" | "seafood" | "seasoning" | "staple" | "other"
+   */
   ingredients: Array<{
     id: string;
     name: string;
-    category: string;
+    category: IngredientCategory; // 👈 将 string 修改为强类型的 IngredientCategory
     price: number;
     asset_key: string;
   }>;
