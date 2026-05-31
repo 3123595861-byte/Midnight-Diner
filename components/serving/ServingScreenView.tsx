@@ -17,6 +17,8 @@ import {
   getServingPayload,
   type ServingSessionPayload,
 } from "@/components/serving/servingSession";
+// 👇 正确引入刚才在全局导出的推进函数
+import { advanceToNextGuest } from "@/components/order/guestStore";
 
 interface ServingScreenViewProps {
   visible: boolean;
@@ -76,6 +78,12 @@ export function ServingScreenView({ visible }: ServingScreenViewProps) {
   const handleSettlementClose = useCallback(() => {
     applySettlementMoney();
     clearServingPayload();
+    
+    // 👇 关键修复点：点击继续经营时，在这里正式调用推进函数
+    if (typeof advanceToNextGuest === "function") {
+      advanceToNextGuest();
+    }
+
     navigateToOrderScreen();
   }, [applySettlementMoney]);
 

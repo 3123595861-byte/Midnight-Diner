@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import { COOKING_CONFIG, type CookingTab } from "@/components/cooking/config";
 import {
@@ -35,6 +35,7 @@ import { DEFAULT_UTENSIL_ID } from "@/lib/data/utensils";
 
 interface CookingScreenViewProps {
   visible: boolean;
+  sessionId: number;
 }
 
 type CookingPhase = "selecting" | "cooking";
@@ -53,7 +54,7 @@ const CATEGORY_SORT_WEIGHT: Record<string, number> = {
 /**
  * 界面2：烹饪选料 → 开始烹饪 → 左右双框（心里话 / 出锅）
  */
-export function CookingScreenView({ visible }: CookingScreenViewProps) {
+export function CookingScreenView({ visible, sessionId }: CookingScreenViewProps) {
   const scale = useUIScale();
   const [phase, setPhase] = useState<CookingPhase>("selecting");
   const [activeTab, setActiveTab] = useState<CookingTab>("vegetable");
@@ -70,6 +71,26 @@ export function CookingScreenView({ visible }: CookingScreenViewProps) {
     null,
   );
   const [isCookingNow, setIsCookingNow] = useState(false);
+
+  const resetState = useCallback(() => {
+    setPhase("selecting");
+    setActiveTab("vegetable");
+    setSelectedIds(new Set());
+    setSelectedUtensilId(null);
+    setChefThought("");
+    chefThoughtRef.current = "";
+    setFoodStatus("cooking");
+    setFoodImageUrl(null);
+    setFoodName(null);
+    setCookResult(null);
+    setIsCookingNow(false);
+  }, []);
+
+  useEffect(() => {
+    if (visible) {
+      resetState();
+    }
+  }, [visible, sessionId, resetState]);
 
   const tabItems = useMemo(
     () => getItemsByCategory(activeTab),

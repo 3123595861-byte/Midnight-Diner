@@ -21,6 +21,8 @@ import { useUIScale } from "@/components/order/useUIScale";
 
 interface OrderScreenProps {
   visible: boolean;
+  currentDay: number;
+  sessionId: number;
 }
 
 /** 随机选取一张餐厅背景图 */
@@ -34,7 +36,7 @@ function pickRandomBackground(): string {
  * - 随机像素背景
  * - 金额 / 对话框 / 开始烹饪按钮
  */
-export function OrderScreenView({ visible }: OrderScreenProps) {
+export function OrderScreenView({ visible, currentDay, sessionId }: OrderScreenProps) {
   const scale = useUIScale();
   const [backgroundUrl] = useState(() => {
     const url = pickRandomBackground();
@@ -42,6 +44,7 @@ export function OrderScreenView({ visible }: OrderScreenProps) {
     return url;
   });
   const [money, setMoney] = useState<number>(CONFIG.money.initial);
+  const [displayDay, setDisplayDay] = useState(currentDay);
   const [moneyAnimating, setMoneyAnimating] = useState(false);
   const [pages, setPages] = useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState(0);
@@ -57,6 +60,10 @@ export function OrderScreenView({ visible }: OrderScreenProps) {
   const handleTypingComplete = useCallback((complete: boolean) => {
     setTypingComplete(complete);
   }, []);
+
+  useEffect(() => {
+    setDisplayDay(currentDay);
+  }, [currentDay, sessionId]);
 
   /** 顾客进店：从 GET /api/guest 加载故事并分页展示 */
   useEffect(() => {
@@ -181,7 +188,7 @@ export function OrderScreenView({ visible }: OrderScreenProps) {
         <div className="relative" style={uiStyle}>
           <MoneyDisplay
             amount={money}
-            day={CONFIG.money.initialDay}
+            day={displayDay}
             animating={moneyAnimating}
           />
 

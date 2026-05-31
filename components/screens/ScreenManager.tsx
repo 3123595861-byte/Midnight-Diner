@@ -28,6 +28,8 @@ export type AppScreen = 0 | 1 | 2 | 3;
  */
 export function ScreenManager() {
   const [screen, setScreen] = useState<AppScreen>(0);
+  const [currentDay, setCurrentDay] = useState(1);
+  const [sessionId, setSessionId] = useState(0);
 
   useEffect(() => {
     prefetchGuestOrder();
@@ -48,18 +50,25 @@ export function ScreenManager() {
     return () => unregisterOrderNavigator();
   }, []);
 
+  const handleStart = () => {
+    setCurrentMoney(INITIAL_MONEY);
+    setCurrentDay(1);
+    setSessionId(0);
+    setScreen(1);
+  };
+
+  const handleContinue = () => {
+    setCurrentDay((day) => day + 1);
+    setSessionId((id) => id + 1);
+    setScreen(1);
+  };
+
   return (
     <div className="relative h-screen w-screen overflow-hidden bg-black">
-      <StartScreen
-        visible={screen === 0}
-        onStart={() => {
-          setCurrentMoney(INITIAL_MONEY);
-          setScreen(1);
-        }}
-      />
-      <OrderScreen visible={screen === 1} />
-      <CookingScreen visible={screen === 2} />
-      <ServingScreen visible={screen === 3} />
+      <StartScreen visible={screen === 0} onStart={handleStart} />
+      <OrderScreen visible={screen === 1} currentDay={currentDay} sessionId={sessionId} />
+      <CookingScreen visible={screen === 2} sessionId={sessionId} />
+      <ServingScreen visible={screen === 3} onContinue={handleContinue} />
     </div>
   );
 }
